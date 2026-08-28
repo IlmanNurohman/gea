@@ -113,7 +113,7 @@ if (!$id) {
 
                         <!-- Data Siswa -->
                         <li class="nav-item">
-                            <a href="../siswa/index.php">
+                            <a href="siswa/index.php">
                                 <i class="fas fa-user-graduate"></i>
                                 <p>Data Siswa</p>
                             </a>

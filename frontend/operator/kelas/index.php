@@ -113,7 +113,7 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
 
                         <!-- Data Kelas -->
                         <li class="nav-item">
-                            <a href="kelas/index.php">
+                            <a href="../kelas/index.php">
                                 <i class="fas fa-chalkboard"></i>
                                 <p>Data Kelas</p>
                             </a>
@@ -121,7 +121,7 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
 
                         <!-- Users -->
                         <li class="nav-item">
-                            <a href="users/index.php">
+                            <a href="../users/index.php">
                                 <i class="fas fa-users-cog"></i>
                                 <p>Users</p>
                             </a>
