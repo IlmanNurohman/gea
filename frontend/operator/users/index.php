@@ -75,7 +75,7 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
                         <li class="nav-item">
-                            <a href="../dashboard_superadmin.php" class="collapsed" aria-expanded="false">
+                            <a href="../dashboardOperator.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>
                             </a>
@@ -136,17 +136,9 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
 
                         <!-- Jadwal Siswa -->
                         <li class="nav-item">
-                            <a href="../jadwal_siswa/index.php">
+                            <a href="../jadwal/index.php">
                                 <i class="fas fa-calendar-alt"></i>
-                                <p>Jadwal Siswa</p>
-                            </a>
-                        </li>
-
-                        <!-- Jadwal Guru -->
-                        <li class="nav-item">
-                            <a href="../jadwal_guru/index.php">
-                                <i class="fas fa-calendar-check"></i>
-                                <p>Jadwal Guru</p>
+                                <p>Jadwal</p>
                             </a>
                         </li>
 
@@ -356,11 +348,10 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                                                                                 Siswa</option>
                                                                             <option value="orang_tua"
                                                                                 <?= $u['role'] == 'orang_tua' ? 'selected' : '' ?>>
-                                                                                Admin</option>
+                                                                                Orang Tua</option>
                                                                             <option value="kepsek"
                                                                                 <?= $u['role'] == 'kepsek' ? 'selected' : '' ?>>
-                                                                                Super
-                                                                                Admin</option>
+                                                                                Kepala Sekolah</option>
                                                                         </select>
                                                                     </div>
                                                                 </div>
@@ -389,7 +380,7 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                 <div class="container-fluid d-flex justify-content-center">
 
                     <div class="copyright ">
-                        2026, by Rahayu
+                        &copy; 2026 All rights reserved.
                     </div>
 
                 </div>

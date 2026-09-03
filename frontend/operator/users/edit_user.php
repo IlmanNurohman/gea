@@ -2,7 +2,7 @@
 session_start();
 include '../../../backend/koneksi.php';
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'super_admin') {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'operator') {
     die('Akses ditolak');
 }
 
