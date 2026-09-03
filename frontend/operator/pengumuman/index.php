@@ -6,9 +6,10 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'operator') {
     die('Akses ditolak');
 }
 
-$data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM kelas ORDER BY created_at DESC");
-?>
+// Fetch Master Data
+$pengumuman = mysqli_query($conn, "SELECT * FROM pengumuman ORDER BY id ASC");
 
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -246,39 +247,42 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                 <!-- End Navbar -->
             </div>
 
-            <div class="container">
+            <div class=" container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3">Kelas</h3>
+                        <h3 class="fw-bold mb-3">Pengumuman</h3>
                         <ul class="breadcrumbs mb-3">
                             <li class="nav-home">
                                 <a href="#">
-                                    <i class="fas fa-chalkboard"></i>
+                                    <i class="fas fa-bullhorn"></i>
                                 </a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Manajemen Kelas</a>
+                                <a href="#">Manajemen Pengumuman</a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Data Kelas</a>
+                                <a href="#">Data Pengumuman</a>
                             </li>
                         </ul>
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            <button class="btn btn-primary mb-3" data-bs-toggle="modal"
-                                data-bs-target="#modalTambahKelas">
-                                <i class="fa fa-plus"></i> Tambah Kelas
-                            </button>
+                            <div class="mb-3">
+                                <button class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#modalTambahPengumuman">
+                                    <i class="fa fa-plus"></i> Tambah Pengumuman
+                                </button>
+                            </div>
+
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Daftar Kelas</h4>
+                                    <h4 class="card-title">Daftar Pengumuman</h4>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
@@ -286,8 +290,8 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                                             <thead>
                                                 <tr>
                                                     <th>No</th>
-                                                    <th>Kelas</th>
-                                                    <th>Wali Kelas</th>
+                                                    <th>Judul</th>
+                                                    <th>Pengumuman</th>
                                                     <th>Di buat</th>
                                                     <th>Aksi</th>
 
@@ -297,49 +301,50 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
 
 
                                                 <?php $no = 1;
-                                                while ($u = mysqli_fetch_assoc($data)) : ?>
+                                                while ($u = mysqli_fetch_assoc($pengumuman)) : ?>
                                                 <tr>
                                                     <td><?= $no++ ?></td>
-                                                    <td><?= $u['nama_kelas'] ?></td>
-                                                    <td><?= strtoupper($u['wali_kelas']) ?></td>
+                                                    <td><?= $u['judul'] ?></td>
+                                                    <td><?= $u['pengumuman'] ?></td>
                                                     <td><?= $u['created_at'] ?></td>
                                                     <td>
                                                         <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                                            data-bs-target="#modalEditkelas<?= $u['id'] ?>">
+                                                            data-bs-target="#modalEditpengumuman<?= $u['id'] ?>">
                                                             Edit
                                                         </button>
-                                                        <a href="hapus_user.php?id=<?= $u['id'] ?>"
+                                                        <a href="hapus_pengumuman.php?id=<?= $u['id'] ?>"
                                                             class="btn btn-danger btn-sm"
-                                                            onclick="return confirm('Hapus kelas ini?')">Hapus</a>
+                                                            onclick="return confirm('Hapus pengumuman ini?')">Hapus</a>
                                                     </td>
                                                 </tr>
 
-                                                <div class="modal fade" id="modalEditkelas<?= $u['id'] ?>" tabindex="-1"
-                                                    aria-hidden="true">
+                                                <div class="modal fade" id="modalEditpengumuman<?= $u['id'] ?>"
+                                                    tabindex="-1" aria-hidden="true">
                                                     <div class="modal-dialog">
                                                         <div class="modal-content">
-                                                            <form action="edit_kelas.php" method="POST">
+                                                            <form action="proses_pengumuman.php?aksi=edit"
+                                                                method="POST">
                                                                 <input type="hidden" name="id" value="<?= $u['id'] ?>">
                                                                 <div class="modal-header">
-                                                                    <h5 class="modal-title">Edit Kelas</h5>
+                                                                    <h5 class="modal-title">Edit Pengumuman</h5>
                                                                     <button type="button" class="btn-close"
                                                                         data-bs-dismiss="modal"></button>
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <div class="mb-3">
-                                                                        <label>Kelas</label>
-                                                                        <input type="text" name="nama_kelas"
-                                                                            value="<?= $u['nama_kelas'] ?>"
+                                                                        <label>Judul</label>
+                                                                        <input type="text" name="judul"
+                                                                            value="<?= $u['judul'] ?>"
                                                                             class="form-control form-control-sm"
                                                                             required>
                                                                     </div>
                                                                     <div class="mb-3">
-                                                                        <label>Wali Kelas</label>
-                                                                        <input type="text" name="wali_kelas"
-                                                                            value="<?= $u['wali_kelas'] ?>"
+                                                                        <label>Pengumuman</label>
+                                                                        <textarea name="pengumuman"
                                                                             class="form-control form-control-sm"
-                                                                            required>
+                                                                            required><?= $u['pengumuman'] ?></textarea>
                                                                     </div>
+
                                                                 </div>
                                                                 <div class="modal-footer">
                                                                     <button type="button" class="btn btn-danger"
@@ -361,8 +366,6 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                     </div>
                 </div>
             </div>
-
-
             <footer class="footer">
                 <div class="container-fluid d-flex justify-content-center">
 
@@ -374,22 +377,24 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
             </footer>
         </div>
 
-        <div class="modal fade" id="modalTambahKelas" tabindex="-1" aria-hidden="true">
+        <!-- Modal Tambah Jadwal -->
+        <div class="modal fade" id="modalTambahPengumuman" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form action="tambah_kelas.php?aksi=tambah" method="POST">
+                    <form action="proses_pengumuman.php?aksi=tambah" method="POST">
                         <div class="modal-header">
-                            <h5 class="modal-title">Tambah Kelas Baru</h5>
+                            <h5 class="modal-title">Tambah Pengumuman</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
+
                             <div class="mb-3">
-                                <label>Kelas</label>
-                                <input type="text" name="nama_kelas" class="form-control form-control-sm" required>
+                                <label>Judul</label>
+                                <input type="text" name="judul" class="form-control form-control-sm" required>
                             </div>
                             <div class="mb-3">
-                                <label>Wali Kelas</label>
-                                <input type="text" name="wali_kelas" class="form-control form-control-sm" required>
+                                <label>Pengumuman</label>
+                                <textarea name="pengumuman" class="form-control form-control-sm" required></textarea>
                             </div>
 
                         </div>
@@ -401,10 +406,8 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                 </div>
             </div>
         </div>
-
-        <!-- End Custom template -->
     </div>
-    <!--   Core JS Files   -->
+
     <script src="../../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../../assets/js/core/popper.min.js"></script>
     <script src="../../../assets/js/core/bootstrap.min.js"></script>
@@ -418,62 +421,9 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
     <script src="../../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
     <!-- Kaiadmin JS -->
     <script src="../../../assets/js/kaiadmin.min.js"></script>
-
     <script>
     $(document).ready(function() {
-        $("#basic-datatables").DataTable({});
-
-        $("#multi-filter-select").DataTable({
-            pageLength: 5,
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $(
-                                '<select class="form-select"><option value=""></option></select>'
-                            )
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-
-                                column
-                                    .search(val ? "^" + val + "$" : "", true, false)
-                                    .draw();
-                            });
-
-                        column
-                            .data()
-                            .unique()
-                            .sort()
-                            .each(function(d, j) {
-                                select.append(
-                                    '<option value="' + d + '">' + d + "</option>"
-                                );
-                            });
-                    });
-            },
-        });
-
-        // Add Row
-        $("#add-row").DataTable({
-            pageLength: 5,
-        });
-
-        var action =
-            '<td> <div class="form-button-action"> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
-
-        $("#addRowButton").click(function() {
-            $("#add-row")
-                .dataTable()
-                .fnAddData([
-                    $("#addName").val(),
-                    $("#addPosition").val(),
-                    $("#addOffice").val(),
-                    action,
-                ]);
-            $("#addRowModal").modal("hide");
-        });
+        $('.basic-datatables').DataTable({});
     });
     </script>
     <?php if (isset($_SESSION['swal'])): ?>

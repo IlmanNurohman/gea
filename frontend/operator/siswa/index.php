@@ -61,8 +61,8 @@ while ($row = mysqli_fetch_assoc($data_kelas)) {
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="dashboard_admin.php" class="logo">
-                        <img src="../../assets/img/" alt="navbar brand" style="height: 30px; margin-right: 10px;" />
+                    <a href="../index.html" class="logo">
+                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -82,7 +82,7 @@ while ($row = mysqli_fetch_assoc($data_kelas)) {
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
                         <li class="nav-item">
-                            <a href="../dashboard_superadmin.php" class="collapsed" aria-expanded="false">
+                            <a href="../dashboardOperator.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>
                             </a>
@@ -143,19 +143,27 @@ while ($row = mysqli_fetch_assoc($data_kelas)) {
 
                         <!-- Jadwal Siswa -->
                         <li class="nav-item">
-                            <a href="../jadwal_siswa/index.php">
+                            <a href="../jadwal/index.php">
                                 <i class="fas fa-calendar-alt"></i>
-                                <p>Jadwal Siswa</p>
+                                <p>Jadwal</p>
                             </a>
                         </li>
 
-                        <!-- Jadwal Guru -->
+                        <li class="nav-section">
+                            <span class="sidebar-mini-icon">
+                                <i class="fa fa-ellipsis-h"></i>
+                            </span>
+                            <h4 class="text-section">Pengumuman</h4>
+                        </li>
+
+                        <!-- Pengumuman -->
                         <li class="nav-item">
-                            <a href="../jadwal_guru/index.php">
-                                <i class="fas fa-calendar-check"></i>
-                                <p>Jadwal Guru</p>
+                            <a href="../pengumuman/index.php">
+                                <i class="fas fa-bullhorn"></i>
+                                <p>Pengumuman</p>
                             </a>
                         </li>
+
                     </ul>
                 </div>
             </div>
@@ -401,6 +409,16 @@ while ($row = mysqli_fetch_assoc($data_kelas)) {
                     </div>
                 </div>
             </div>
+
+            <footer class="footer">
+                <div class="container-fluid d-flex justify-content-center">
+
+                    <div class="copyright ">
+                        &copy; 2026 All rights reserved.
+                    </div>
+
+                </div>
+            </footer>
         </div>
 
         <!-- Modal Tambah Siswa Manual -->

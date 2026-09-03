@@ -23,10 +23,10 @@ if (isset($_POST['login'])) {
                 header("Location:../frontend/operator/dashboardOperator.php");
                 break;
             case 'guru':
-                header("Location: ../frontend/admin/dashboard_admin.php");
+                header("Location: ../frontend/guru/absensi/index.php");
                 break;
             case 'siswa':
-                header("Location: ../frontend/siswa/dashboard_siswa.php");
+                header("Location: ../frontend/siswa/tugas/index.php");
                 break;
         }
     } else {

@@ -58,12 +58,13 @@ if (!$id) {
 <body>
     <div class="wrapper">
         <!-- Sidebar -->
+        <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="dashboard_admin.php" class="logo">
-                        <img src="../../assets/img/" alt="navbar brand" style="height: 30px; margin-right: 10px;" />
+                    <a href="../index.html" class="logo">
+                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -98,14 +99,14 @@ if (!$id) {
 
                         <!-- Absensi Guru -->
                         <li class="nav-item">
-                            <a href="../absensi_guru/index.php">
+                            <a href="absensi_guru/index.php">
                                 <i class="fas fa-user-check"></i>
                                 <p>Absensi Guru</p>
                             </a>
                         </li>
 
                         <li class="nav-item">
-                            <a href="../guru/index.php">
+                            <a href="guru/index.php">
                                 <i class="fas fa-chalkboard-teacher"></i>
                                 <p>Data Guru</p>
                             </a>
@@ -144,23 +145,32 @@ if (!$id) {
 
                         <!-- Jadwal Siswa -->
                         <li class="nav-item">
-                            <a href="../jadwal_siswa/index.php">
+                            <a href="jadwal/index.php">
                                 <i class="fas fa-calendar-alt"></i>
-                                <p>Jadwal Siswa</p>
+                                <p>Jadwal</p>
                             </a>
                         </li>
 
-                        <!-- Jadwal Guru -->
+                        <li class="nav-section">
+                            <span class="sidebar-mini-icon">
+                                <i class="fa fa-ellipsis-h"></i>
+                            </span>
+                            <h4 class="text-section">Pengumuman</h4>
+                        </li>
+
+                        <!-- Pengumuman -->
                         <li class="nav-item">
-                            <a href="../jadwal_guru/index.php">
-                                <i class="fas fa-calendar-check"></i>
-                                <p>Jadwal Guru</p>
+                            <a href="pengumuman/index.php">
+                                <i class="fas fa-bullhorn"></i>
+                                <p>Pengumuman</p>
                             </a>
                         </li>
+
                     </ul>
                 </div>
             </div>
         </div>
+        <!-- End Sidebar -->
         <!-- End Sidebar -->
 
         <div class="main-panel">
@@ -403,7 +413,7 @@ if (!$id) {
                 <div class="container-fluid d-flex justify-content-center">
 
                     <div class="copyright ">
-                        2026,
+                        &copy; 2026 All rights reserved.
                     </div>
 
                 </div>

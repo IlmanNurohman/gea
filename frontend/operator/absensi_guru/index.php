@@ -6,9 +6,36 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'operator') {
     die('Akses ditolak');
 }
 
-$data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM kelas ORDER BY created_at DESC");
-?>
+$today = date('Y-m-d');
 
+// Buka / Tutup Akses Absensi Guru
+if (isset($_POST['toggle_sesi'])) {
+    $status_baru = $_POST['status'];
+
+    $cek = mysqli_query($conn, "SELECT id FROM sesi_absensi_guru WHERE tanggal = '$today'");
+    if (mysqli_num_rows($cek) > 0) {
+        mysqli_query($conn, "UPDATE sesi_absensi_guru SET status = '$status_baru' WHERE tanggal = '$today'");
+    } else {
+        mysqli_query($conn, "INSERT INTO sesi_absensi_guru (tanggal, status) VALUES ('$today', '$status_baru')");
+    }
+
+    $pesan = ($status_baru === 'buka') ? 'Absensi Guru Berhasil DIBUKA' : 'Absensi Guru Berhasil DITUTUP';
+    $_SESSION['swal'] = ['title' => 'Berhasil', 'text' => $pesan, 'type' => 'success'];
+    header("Location: index.php");
+    exit;
+}
+
+// Cek Status Hari Ini
+$q_status = mysqli_query($conn, "SELECT status FROM sesi_absensi_guru WHERE tanggal = '$today'");
+$d_status = mysqli_fetch_assoc($q_status);
+$status_hari_ini = $d_status['status'] ?? 'tutup';
+
+// Fetch Rekap Absensi Guru Hari Ini
+$q_rekap = mysqli_query($conn, "SELECT guru.nama_guru, guru.nip, absensi_guru.jam_masuk, absensi_guru.jam_keluar, absensi_guru.status, absensi_guru.keterangan 
+                                FROM guru 
+                                LEFT JOIN absensi_guru ON guru.id = absensi_guru.guru_id AND absensi_guru.tanggal = '$today' 
+                                ORDER BY guru.nama_guru ASC");
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -162,7 +189,6 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
             </div>
         </div>
         <!-- End Sidebar -->
-
         <div class="main-panel">
             <div class="main-header">
                 <div class="main-header-logo">
@@ -245,112 +271,102 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                 </nav>
                 <!-- End Navbar -->
             </div>
-
             <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3">Kelas</h3>
+                        <h3 class="fw-bold mb-3">Absensi Guru</h3>
                         <ul class="breadcrumbs mb-3">
                             <li class="nav-home">
                                 <a href="#">
-                                    <i class="fas fa-chalkboard"></i>
+                                    <i class="fas fa-user-check"></i>
                                 </a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Manajemen Kelas</a>
+                                <a href="#">Manajemen Absensi</a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Data Kelas</a>
+                                <a href="#">Absensi Guru</a>
                             </li>
                         </ul>
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            <button class="btn btn-primary mb-3" data-bs-toggle="modal"
-                                data-bs-target="#modalTambahKelas">
-                                <i class="fa fa-plus"></i> Tambah Kelas
-                            </button>
+
+
+                            <!-- Panel Tombol Buka/Tutup -->
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Daftar Kelas</h4>
+                                    <h4 class="card-title">Kontrol Absensi Guru (<?= date('d-m-Y') ?>)</h4>
+                                </div>
+                                <div class="card-body d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h5>Status Akses Absensi Guru Hari Ini:
+                                            <?php if ($status_hari_ini === 'buka') : ?>
+                                            <span class="badge bg-success">DIBUKA</span>
+                                            <?php else : ?>
+                                            <span class="badge bg-danger">DITUTUP</span>
+                                            <?php endif; ?>
+                                        </h5>
+                                    </div>
+                                    <div>
+                                        <form method="POST">
+                                            <?php if ($status_hari_ini === 'buka') : ?>
+                                            <input type="hidden" name="status" value="tutup">
+                                            <button type="submit" name="toggle_sesi" class="btn btn-danger">
+                                                <i class="fa fa-lock"></i> Tutup Absensi Guru
+                                            </button>
+                                            <?php else : ?>
+                                            <input type="hidden" name="status" value="buka">
+                                            <button type="submit" name="toggle_sesi" class="btn btn-success">
+                                                <i class="fa fa-key"></i> Buka Akses Absensi Guru
+                                            </button>
+                                            <?php endif; ?>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tabel Monitoring Kehadiran Guru -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Daftar Kehadiran Guru Hari Ini</h4>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table id="basic-datatables" class="display table table-striped table-hover">
                                             <thead>
                                                 <tr>
-                                                    <th>No</th>
-                                                    <th>Kelas</th>
-                                                    <th>Wali Kelas</th>
-                                                    <th>Di buat</th>
-                                                    <th>Aksi</th>
-
+                                                    <th>NIP</th>
+                                                    <th>Nama Guru</th>
+                                                    <th>Jam Masuk</th>
+                                                    <th>Jam Pulang</th>
+                                                    <th>Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-
-
-                                                <?php $no = 1;
-                                                while ($u = mysqli_fetch_assoc($data)) : ?>
+                                                <?php while ($r = mysqli_fetch_assoc($q_rekap)) : ?>
                                                 <tr>
-                                                    <td><?= $no++ ?></td>
-                                                    <td><?= $u['nama_kelas'] ?></td>
-                                                    <td><?= strtoupper($u['wali_kelas']) ?></td>
-                                                    <td><?= $u['created_at'] ?></td>
+                                                    <td><?= htmlspecialchars($r['nip']) ?></td>
+                                                    <td><?= htmlspecialchars($r['nama_guru']) ?></td>
+                                                    <td><?= $r['jam_masuk'] ?? '-' ?></td>
+                                                    <td><?= $r['jam_keluar'] ?? '-' ?></td>
                                                     <td>
-                                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                                            data-bs-target="#modalEditkelas<?= $u['id'] ?>">
-                                                            Edit
-                                                        </button>
-                                                        <a href="hapus_user.php?id=<?= $u['id'] ?>"
-                                                            class="btn btn-danger btn-sm"
-                                                            onclick="return confirm('Hapus kelas ini?')">Hapus</a>
+                                                        <?php if ($r['status'] === 'Hadir') : ?>
+                                                        <span class="badge bg-success">Hadir</span>
+                                                        <?php elseif ($r['status'] === 'Izin' || $r['status'] === 'Sakit') : ?>
+                                                        <span class="badge bg-warning"><?= $r['status'] ?>
+                                                            (<?= htmlspecialchars($r['keterangan']) ?>)</span>
+                                                        <?php else : ?>
+                                                        <span class="badge bg-secondary">Belum Absen</span>
+                                                        <?php endif; ?>
                                                     </td>
                                                 </tr>
-
-                                                <div class="modal fade" id="modalEditkelas<?= $u['id'] ?>" tabindex="-1"
-                                                    aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <form action="edit_kelas.php" method="POST">
-                                                                <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">Edit Kelas</h5>
-                                                                    <button type="button" class="btn-close"
-                                                                        data-bs-dismiss="modal"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <div class="mb-3">
-                                                                        <label>Kelas</label>
-                                                                        <input type="text" name="nama_kelas"
-                                                                            value="<?= $u['nama_kelas'] ?>"
-                                                                            class="form-control form-control-sm"
-                                                                            required>
-                                                                    </div>
-                                                                    <div class="mb-3">
-                                                                        <label>Wali Kelas</label>
-                                                                        <input type="text" name="wali_kelas"
-                                                                            value="<?= $u['wali_kelas'] ?>"
-                                                                            class="form-control form-control-sm"
-                                                                            required>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-danger"
-                                                                        data-bs-dismiss="modal">Batal</button>
-                                                                    <button type="submit" name="update"
-                                                                        class="btn btn-primary">Simpan</button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                                 <?php endwhile; ?>
                                             </tbody>
                                         </table>
@@ -362,7 +378,6 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                 </div>
             </div>
 
-
             <footer class="footer">
                 <div class="container-fluid d-flex justify-content-center">
 
@@ -373,37 +388,8 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                 </div>
             </footer>
         </div>
-
-        <div class="modal fade" id="modalTambahKelas" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form action="tambah_kelas.php?aksi=tambah" method="POST">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Tambah Kelas Baru</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label>Kelas</label>
-                                <input type="text" name="nama_kelas" class="form-control form-control-sm" required>
-                            </div>
-                            <div class="mb-3">
-                                <label>Wali Kelas</label>
-                                <input type="text" name="wali_kelas" class="form-control form-control-sm" required>
-                            </div>
-
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" name="simpan" class="btn btn-primary">Simpan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- End Custom template -->
     </div>
+
     <!--   Core JS Files   -->
     <script src="../../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../../assets/js/core/popper.min.js"></script>
@@ -418,75 +404,6 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
     <script src="../../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
     <!-- Kaiadmin JS -->
     <script src="../../../assets/js/kaiadmin.min.js"></script>
-
-    <script>
-    $(document).ready(function() {
-        $("#basic-datatables").DataTable({});
-
-        $("#multi-filter-select").DataTable({
-            pageLength: 5,
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $(
-                                '<select class="form-select"><option value=""></option></select>'
-                            )
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-
-                                column
-                                    .search(val ? "^" + val + "$" : "", true, false)
-                                    .draw();
-                            });
-
-                        column
-                            .data()
-                            .unique()
-                            .sort()
-                            .each(function(d, j) {
-                                select.append(
-                                    '<option value="' + d + '">' + d + "</option>"
-                                );
-                            });
-                    });
-            },
-        });
-
-        // Add Row
-        $("#add-row").DataTable({
-            pageLength: 5,
-        });
-
-        var action =
-            '<td> <div class="form-button-action"> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
-
-        $("#addRowButton").click(function() {
-            $("#add-row")
-                .dataTable()
-                .fnAddData([
-                    $("#addName").val(),
-                    $("#addPosition").val(),
-                    $("#addOffice").val(),
-                    action,
-                ]);
-            $("#addRowModal").modal("hide");
-        });
-    });
-    </script>
-    <?php if (isset($_SESSION['swal'])): ?>
-    <script>
-    swal({
-        title: "<?= $_SESSION['swal']['title'] ?>",
-        text: "<?= $_SESSION['swal']['text'] ?>",
-        icon: "<?= $_SESSION['swal']['type'] ?>",
-        button: "OK"
-    });
-    </script>
-    <?php unset($_SESSION['swal']);
-    endif; ?>
 </body>
 
 </html>

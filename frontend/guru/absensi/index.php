@@ -2,13 +2,49 @@
 session_start();
 include '../../../backend/koneksi.php';
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'operator') {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'guru') {
     die('Akses ditolak');
 }
 
-$data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM kelas ORDER BY created_at DESC");
-?>
+$user_id = $_SESSION['user_id'] ?? 0;
 
+// Ambil ID guru yang sedang login
+$q_guru = mysqli_query(
+    $conn,
+    "SELECT id, nama_guru, nip
+     FROM guru
+     WHERE user_id = '$user_id'
+     LIMIT 1"
+);
+
+$d_guru = mysqli_fetch_assoc($q_guru);
+
+if (!$d_guru) {
+    die('Data guru tidak ditemukan.');
+}
+
+$guru_id = (int) $d_guru['id'];
+
+$today = date('Y-m-d');
+
+$kelas_id = $_GET['kelas_id'] ?? '';
+
+// Ambil daftar kelas
+$data_kelas = mysqli_query(
+    $conn,
+    "SELECT *
+     FROM kelas
+     ORDER BY nama_kelas ASC"
+);
+$mapel_id = $_GET['mapel_id'] ?? '';
+
+$data_mapel = mysqli_query(
+    $conn,
+    "SELECT id, nama_mapel
+     FROM mapel
+     ORDER BY nama_mapel ASC"
+);
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -44,6 +80,7 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
     <!-- CSS Files -->
     <link rel="stylesheet" href="../../../assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="../../../assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="../../../assets/css/kaiadmin.min.css" />
     <link rel="stylesheet" href="../../../assets/css/kaiadmin.min.css" />
 </head>
 
@@ -162,7 +199,6 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
             </div>
         </div>
         <!-- End Sidebar -->
-
         <div class="main-panel">
             <div class="main-header">
                 <div class="main-header-logo">
@@ -249,162 +285,273 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
             <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3">Kelas</h3>
+                        <h3 class="fw-bold mb-3">Users</h3>
                         <ul class="breadcrumbs mb-3">
                             <li class="nav-home">
                                 <a href="#">
-                                    <i class="fas fa-chalkboard"></i>
+                                    <i class="fas fa-users"></i>
                                 </a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Manajemen Kelas</a>
+                                <a href="#">Manajemen users</a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Data Kelas</a>
+                                <a href="#">Data Users</a>
                             </li>
                         </ul>
                     </div>
+
+
                     <div class="row">
                         <div class="col-md-12">
-                            <button class="btn btn-primary mb-3" data-bs-toggle="modal"
-                                data-bs-target="#modalTambahKelas">
-                                <i class="fa fa-plus"></i> Tambah Kelas
-                            </button>
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Daftar Kelas</h4>
+                                    <h4 class="card-title">Input Absensi Siswa</h4>
+                                    <span>Guru: <strong><?= htmlspecialchars($d_guru['nama_guru']) ?></span>
                                 </div>
                                 <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table id="basic-datatables" class="display table table-striped table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Kelas</th>
-                                                    <th>Wali Kelas</th>
-                                                    <th>Di buat</th>
-                                                    <th>Aksi</th>
 
-                                                </tr>
-                                            </thead>
-                                            <tbody>
+                                    <!-- Pilih Kelas -->
+                                    <form method="GET" class="row g-3 mb-4">
 
+                                        <div class="col-md-5">
 
-                                                <?php $no = 1;
-                                                while ($u = mysqli_fetch_assoc($data)) : ?>
-                                                <tr>
-                                                    <td><?= $no++ ?></td>
-                                                    <td><?= $u['nama_kelas'] ?></td>
-                                                    <td><?= strtoupper($u['wali_kelas']) ?></td>
-                                                    <td><?= $u['created_at'] ?></td>
-                                                    <td>
-                                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                                            data-bs-target="#modalEditkelas<?= $u['id'] ?>">
-                                                            Edit
-                                                        </button>
-                                                        <a href="hapus_user.php?id=<?= $u['id'] ?>"
-                                                            class="btn btn-danger btn-sm"
-                                                            onclick="return confirm('Hapus kelas ini?')">Hapus</a>
-                                                    </td>
-                                                </tr>
+                                            <label class="form-label">
+                                                Pilih Kelas
+                                            </label>
 
-                                                <div class="modal fade" id="modalEditkelas<?= $u['id'] ?>" tabindex="-1"
-                                                    aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <form action="edit_kelas.php" method="POST">
-                                                                <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">Edit Kelas</h5>
-                                                                    <button type="button" class="btn-close"
-                                                                        data-bs-dismiss="modal"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <div class="mb-3">
-                                                                        <label>Kelas</label>
-                                                                        <input type="text" name="nama_kelas"
-                                                                            value="<?= $u['nama_kelas'] ?>"
-                                                                            class="form-control form-control-sm"
-                                                                            required>
-                                                                    </div>
-                                                                    <div class="mb-3">
-                                                                        <label>Wali Kelas</label>
-                                                                        <input type="text" name="wali_kelas"
-                                                                            value="<?= $u['wali_kelas'] ?>"
-                                                                            class="form-control form-control-sm"
-                                                                            required>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-danger"
-                                                                        data-bs-dismiss="modal">Batal</button>
-                                                                    <button type="submit" name="update"
-                                                                        class="btn btn-primary">Simpan</button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            <select name="kelas_id" class="form-select" onchange="this.form.submit()">
+
+                                                <option value="">
+                                                    -- Pilih Kelas --
+                                                </option>
+
+                                                <?php while ($k = mysqli_fetch_assoc($data_kelas)) : ?>
+
+                                                <option value="<?= $k['id'] ?>"
+                                                    <?= $kelas_id == $k['id'] ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($k['nama_kelas']) ?>
+                                                </option>
+
                                                 <?php endwhile; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
+
+                                            </select>
+
+                                        </div>
+                                        <?php if (!empty($kelas_id)) : ?>
+
+                                        <div class="col-md-4">
+
+                                            <label class="form-label">
+                                                Pilih Mata Pelajaran
+                                            </label>
+
+                                            <select name="mapel_id" class="form-select" onchange="this.form.submit()">
+
+                                                <option value="">
+                                                    -- Pilih Mata Pelajaran --
+                                                </option>
+
+                                                <?php while ($m = mysqli_fetch_assoc($data_mapel)) : ?>
+
+                                                <option value="<?= $m['id'] ?>"
+                                                    <?= $mapel_id == $m['id'] ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($m['nama_mapel']) ?>
+                                                </option>
+
+                                                <?php endwhile; ?>
+
+                                            </select>
+
+                                        </div>
+
+                                        <?php endif; ?>
+
+
+                                    </form>
                                 </div>
                             </div>
+
+
+                            <?php if (!empty($kelas_id) && !empty($mapel_id)) : ?>
+
+                            <?php
+
+                                // Ambil data siswa berdasarkan kelas
+                                $data_siswa = mysqli_query(
+                                    $conn,
+                                    "SELECT *
+                        FROM siswa
+                        WHERE kelas_id = '$kelas_id'
+                        ORDER BY nama_lengkap ASC"
+                                ); ?>
+
+                            <form action="simpan_absensi.php" method="POST">
+
+                                <!-- ID guru -->
+                                <input type="hidden" name="guru_id" value="<?= $guru_id ?>">
+
+                                <!-- ID kelas -->
+                                <input type="hidden" name="kelas_id" value="<?= htmlspecialchars($kelas_id) ?>">
+
+                                <input type="hidden" name="mapel_id" value="<?= $mapel_id ?>">
+
+                                <!-- Tanggal absensi -->
+                                <input type="hidden" name="tanggal" value="<?= $today ?>">
+
+
+                                <div class="card">
+
+                                    <div class="card-header">
+
+
+                                        <h4 class="card-title">Absensi Siswa</h4>
+                                        <span class="text-muted">
+                                            (<?= date('d-m-Y') ?>)
+                                        </span>
+                                    </div>
+
+                                    <div class="card-body">
+
+                                        <?php if (mysqli_num_rows($data_siswa) === 0) : ?>
+
+                                        <div class="alert alert-warning">
+                                            Belum ada siswa pada kelas ini.
+                                        </div>
+
+                                        <?php else : ?>
+
+                                        <div class="table-responsive">
+
+                                            <table id="basic-datatables"
+                                                class="display table table-striped table-hover">
+
+                                                <thead>
+
+                                                    <tr>
+                                                        <th width="15%">NISN</th>
+                                                        <th width="25%">Nama Siswa</th>
+                                                        <th width="35%">Status Kehadiran</th>
+                                                        <th width="25%">Keterangan</th>
+                                                    </tr>
+
+                                                </thead>
+
+                                                <tbody>
+
+                                                    <?php while ($s = mysqli_fetch_assoc($data_siswa)) : ?>
+
+                                                    <tr>
+
+                                                        <td>
+                                                            <?= htmlspecialchars($s['nisn']) ?>
+                                                        </td>
+
+                                                        <td>
+                                                            <?= htmlspecialchars($s['nama_lengkap']) ?>
+                                                        </td>
+
+                                                        <td>
+
+                                                            <div class="form-check form-check-inline">
+
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="absensi[<?= $s['id'] ?>]" value="Hadir"
+                                                                    checked>
+
+                                                                <label class="form-check-label">
+                                                                    Hadir
+                                                                </label>
+
+                                                            </div>
+
+
+                                                            <div class="form-check form-check-inline">
+
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="absensi[<?= $s['id'] ?>]" value="Izin">
+
+                                                                <label class="form-check-label">
+                                                                    Izin
+                                                                </label>
+
+                                                            </div>
+
+
+                                                            <div class="form-check form-check-inline">
+
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="absensi[<?= $s['id'] ?>]" value="Sakit">
+
+                                                                <label class="form-check-label">
+                                                                    Sakit
+                                                                </label>
+
+                                                            </div>
+
+
+                                                            <div class="form-check form-check-inline">
+
+                                                                <input class="form-check-input" type="radio"
+                                                                    name="absensi[<?= $s['id'] ?>]" value="Alfa">
+
+                                                                <label class="form-check-label">
+                                                                    Alfa
+                                                                </label>
+
+                                                            </div>
+
+                                                        </td>
+
+
+                                                        <td>
+
+                                                            <input type="text" name="keterangan[<?= $s['id'] ?>]"
+                                                                class="form-control form-control-sm"
+                                                                placeholder="Catatan (Opsional)">
+
+                                                        </td>
+
+                                                    </tr>
+
+                                                    <?php endwhile; ?>
+
+                                                </tbody>
+
+                                            </table>
+
+                                        </div>
+
+
+                                        <button type="submit" name="simpan" class="btn btn-success mt-3">
+                                            <i class="fa fa-save"></i>
+                                            Simpan Absensi
+                                        </button>
+
+                                        <?php endif; ?>
+
+                                    </div>
+
+                                </div>
+
+                            </form>
+
+                            <?php endif; ?>
+
                         </div>
                     </div>
                 </div>
             </div>
-
-
-            <footer class="footer">
-                <div class="container-fluid d-flex justify-content-center">
-
-                    <div class="copyright ">
-                        &copy; 2026 All rights reserved.
-                    </div>
-
-                </div>
-            </footer>
         </div>
-
-        <div class="modal fade" id="modalTambahKelas" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form action="tambah_kelas.php?aksi=tambah" method="POST">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Tambah Kelas Baru</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label>Kelas</label>
-                                <input type="text" name="nama_kelas" class="form-control form-control-sm" required>
-                            </div>
-                            <div class="mb-3">
-                                <label>Wali Kelas</label>
-                                <input type="text" name="wali_kelas" class="form-control form-control-sm" required>
-                            </div>
-
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" name="simpan" class="btn btn-primary">Simpan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- End Custom template -->
     </div>
-    <!--   Core JS Files   -->
+    </div>
+    </div>
     <script src="../../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../../assets/js/core/popper.min.js"></script>
     <script src="../../../assets/js/core/bootstrap.min.js"></script>
@@ -419,74 +566,6 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
     <!-- Kaiadmin JS -->
     <script src="../../../assets/js/kaiadmin.min.js"></script>
 
-    <script>
-    $(document).ready(function() {
-        $("#basic-datatables").DataTable({});
-
-        $("#multi-filter-select").DataTable({
-            pageLength: 5,
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $(
-                                '<select class="form-select"><option value=""></option></select>'
-                            )
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-
-                                column
-                                    .search(val ? "^" + val + "$" : "", true, false)
-                                    .draw();
-                            });
-
-                        column
-                            .data()
-                            .unique()
-                            .sort()
-                            .each(function(d, j) {
-                                select.append(
-                                    '<option value="' + d + '">' + d + "</option>"
-                                );
-                            });
-                    });
-            },
-        });
-
-        // Add Row
-        $("#add-row").DataTable({
-            pageLength: 5,
-        });
-
-        var action =
-            '<td> <div class="form-button-action"> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
-
-        $("#addRowButton").click(function() {
-            $("#add-row")
-                .dataTable()
-                .fnAddData([
-                    $("#addName").val(),
-                    $("#addPosition").val(),
-                    $("#addOffice").val(),
-                    action,
-                ]);
-            $("#addRowModal").modal("hide");
-        });
-    });
-    </script>
-    <?php if (isset($_SESSION['swal'])): ?>
-    <script>
-    swal({
-        title: "<?= $_SESSION['swal']['title'] ?>",
-        text: "<?= $_SESSION['swal']['text'] ?>",
-        icon: "<?= $_SESSION['swal']['type'] ?>",
-        button: "OK"
-    });
-    </script>
-    <?php unset($_SESSION['swal']);
-    endif; ?>
 </body>
 
 </html>

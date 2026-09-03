@@ -82,7 +82,7 @@ while ($row = mysqli_fetch_assoc($data_mapel)) {
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
                         <li class="nav-item">
-                            <a href="../dashboard_superadmin.php" class="collapsed" aria-expanded="false">
+                            <a href="../dashboardOperator.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>
                             </a>
@@ -143,17 +143,9 @@ while ($row = mysqli_fetch_assoc($data_mapel)) {
 
                         <!-- Jadwal Siswa -->
                         <li class="nav-item">
-                            <a href="../jadwal_siswa/index.php">
+                            <a href="../jadwal/index.php">
                                 <i class="fas fa-calendar-alt"></i>
-                                <p>Jadwal Siswa</p>
-                            </a>
-                        </li>
-
-                        <!-- Jadwal Guru -->
-                        <li class="nav-item">
-                            <a href="../jadwal_guru/index.php">
-                                <i class="fas fa-calendar-check"></i>
-                                <p>Jadwal Guru</p>
+                                <p>Jadwal</p>
                             </a>
                         </li>
 
@@ -401,6 +393,16 @@ while ($row = mysqli_fetch_assoc($data_mapel)) {
                     </div>
                 </div>
             </div>
+
+            <footer class="footer">
+                <div class="container-fluid d-flex justify-content-center">
+
+                    <div class="copyright ">
+                        &copy; 2026 All rights reserved.
+                    </div>
+
+                </div>
+            </footer>
         </div>
 
         <!-- Modal Tambah Guru -->
