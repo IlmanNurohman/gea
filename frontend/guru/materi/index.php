@@ -2,15 +2,25 @@
 session_start();
 include '../../../backend/koneksi.php';
 
-$tugas_id = $_GET['tugas_id'] ?? 0;
-$q_tugas  = mysqli_query($conn, "SELECT tugas.*, mapel.nama_mapel, kelas.nama_kelas FROM tugas JOIN mapel ON tugas.mapel_id=mapel.id JOIN kelas ON tugas.kelas_id=kelas.id WHERE tugas.id='$tugas_id'");
-$d_tugas  = mysqli_fetch_assoc($q_tugas);
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'guru') { die('Akses ditolak'); }
 
-$q_pengumpulan = mysqli_query($conn, "SELECT pengumpulan_tugas.*, siswa.nama_lengkap, siswa.nisn 
-                                      FROM pengumpulan_tugas 
-                                      JOIN siswa ON pengumpulan_tugas.siswa_id = siswa.id 
-                                      WHERE pengumpulan_tugas.tugas_id = '$tugas_id' 
-                                      ORDER BY pengumpulan_tugas.waktu_kumpul ASC");
+$user_id = $_SESSION['user_id'] ?? '';
+$q_guru  = mysqli_query($conn, "SELECT id FROM guru WHERE user_id = '$user_id'");
+$d_guru  = mysqli_fetch_assoc($q_guru);
+$guru_id = $d_guru['id'] ?? 0;
+
+// Master Data Kelas & Mapel
+$kelas_list = mysqli_query($conn, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
+$mapel_list = mysqli_query($conn, "SELECT * FROM mapel ORDER BY nama_mapel ASC");
+
+// Fetch Data Materi
+$query_materi = "SELECT materi.*, kelas.nama_kelas, mapel.nama_mapel 
+                FROM materi 
+                JOIN kelas ON materi.kelas_id = kelas.id 
+                JOIN mapel ON materi.mapel_id = mapel.id 
+                WHERE materi.guru_id = '$guru_id' 
+                ORDER BY materi.id DESC";
+$data_materi = mysqli_query($conn, $query_materi);
 ?>
 
 <!DOCTYPE html>
@@ -255,54 +265,52 @@ $q_pengumpulan = mysqli_query($conn, "SELECT pengumpulan_tugas.*, siswa.nama_len
                     </div>
                     <div class="row">
                         <div class="col-md-12">
+                            <div class="mb-3">
+                                <button class="btn btn-primary mb-3" data-bs-toggle="modal"
+                                    data-bs-target="#modalTambahMateri">+
+                                    Tambah
+                                    Materi</button>
+                            </div>
+
+
 
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Pengumpulan Tugas: <?= htmlspecialchars($d_tugas['judul']) ?>
-                                        (<?= $d_tugas['nama_kelas'] ?>)</h4>
+                                    <h4 class="card-title">Kelola Materi Pembelajaran</h4>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table id="basic-datatables" class="display table table-striped table-hover">
                                             <thead>
                                                 <tr>
-                                                    <th>NISN</th>
-                                                    <th>Nama Siswa</th>
-                                                    <th>Waktu Kumpul</th>
-                                                    <th>File Jawaban</th>
-                                                    <th>Nilai</th>
-                                                    <th>Aksi / Beri Nilai</th>
+                                                    <th>Tanggal</th>
+                                                    <th>Kelas</th>
+                                                    <th>Mapel</th>
+                                                    <th>Pertemuan</th>
+                                                    <th>Judul Materi</th>
+                                                    <th>File</th>
+                                                    <th>Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php while ($p = mysqli_fetch_assoc($q_pengumpulan)) : ?>
+                                                <?php while ($m = mysqli_fetch_assoc($data_materi)) : ?>
                                                 <tr>
-                                                    <td><?= $p['nisn'] ?></td>
-                                                    <td><?= $p['nama_lengkap'] ?></td>
-                                                    <td><?= date('d-m-Y H:i', strtotime($p['waktu_kumpul'])) ?></td>
-                                                    <td><a href="../../../uploads/jawaban/<?= $p['file_jawaban'] ?>"
-                                                            target="_blank" class="btn btn-info btn-sm">Lihat File</a>
+                                                    <td><?= date('d-m-Y', strtotime($m['tanggal'])) ?></td>
+                                                    <td><?= $m['nama_kelas'] ?></td>
+                                                    <td><?= $m['nama_mapel'] ?></td>
+                                                    <td><span
+                                                            class="badge bg-secondary"><?= htmlspecialchars($m['pertemuan']) ?></span>
+                                                    </td>
+                                                    <td><strong><?= htmlspecialchars($m['judul']) ?></strong></td>
+                                                    <td>
+                                                        <a href="../../../uploads/materi/<?= $m['file_materi'] ?>"
+                                                            target="_blank" class="btn btn-info btn-sm">Download
+                                                            File</a>
                                                     </td>
                                                     <td>
-                                                        <strong><?= $p['nilai'] !== NULL ? $p['nilai'] : '<span class="text-danger">Belum Dinilai</span>' ?></strong>
-                                                    </td>
-                                                    <td>
-                                                        <form action="proses_tugas.php?aksi=nilai" method="POST"
-                                                            class="d-flex gap-2">
-                                                            <input type="hidden" name="id_kumpul"
-                                                                value="<?= $p['id'] ?>">
-                                                            <input type="hidden" name="tugas_id"
-                                                                value="<?= $tugas_id ?>">
-                                                            <input type="number" name="nilai" value="<?= $p['nilai'] ?>"
-                                                                class="form-control form-control-sm" style="width:70px;"
-                                                                placeholder="0-100" required>
-                                                            <input type="text" name="catatan_guru"
-                                                                value="<?= htmlspecialchars($p['catatan_guru'] ?? '') ?>"
-                                                                class="form-control form-control-sm"
-                                                                placeholder="Catatan">
-                                                            <button type="submit"
-                                                                class="btn btn-success btn-sm">Simpan</button>
-                                                        </form>
+                                                        <a href="proses_materi.php?aksi=hapus&id=<?= $m['id'] ?>"
+                                                            class="btn btn-danger btn-sm"
+                                                            onclick="return confirm('Hapus materi ini?')">Hapus</a>
                                                     </td>
                                                 </tr>
                                                 <?php endwhile; ?>
@@ -315,7 +323,6 @@ $q_pengumpulan = mysqli_query($conn, "SELECT pengumpulan_tugas.*, siswa.nama_len
                     </div>
                 </div>
             </div>
-
             <footer class="footer">
                 <div class="container-fluid d-flex justify-content-center">
 
@@ -327,6 +334,67 @@ $q_pengumpulan = mysqli_query($conn, "SELECT pengumpulan_tugas.*, siswa.nama_len
             </footer>
         </div>
     </div>
+
+    <!-- Modal Tambah Materi -->
+    <div class="modal fade" id="modalTambahMateri" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="proses_materi.php?aksi=tambah" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="guru_id" value="<?= $guru_id ?>">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tambah Materi Pembelajaran</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label>Pilih Kelas</label>
+                            <select name="kelas_id" class="form-select" required>
+                                <option value="">-- Pilih Kelas --</option>
+                                <?php while ($k = mysqli_fetch_assoc($kelas_list)) : ?>
+                                <option value="<?= $k['id'] ?>"><?= $k['nama_kelas'] ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Pilih Mapel</label>
+                            <select name="mapel_id" class="form-select" required>
+                                <option value="">-- Pilih Mapel --</option>
+                                <?php while ($mp = mysqli_fetch_assoc($mapel_list)) : ?>
+                                <option value="<?= $mp['id'] ?>"><?= $mp['nama_mapel'] ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Pertemuan Ke-</label>
+                            <input type="text" name="pertemuan" class="form-control"
+                                placeholder="Contoh: Pertemuan 1 / Bab 2" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Tanggal Upload / Pelaksanaan</label>
+                            <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Judul Materi</label>
+                            <input type="text" name="judul" class="form-control" placeholder="Judul Modul/Materi"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Deskripsi Singkat (Opsional)</label>
+                            <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Upload File Materi (PDF/PPT/DOCX/ZIP)</label>
+                            <input type="file" name="file_materi" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Simpan Materi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="../../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../../assets/js/core/popper.min.js"></script>
     <script src="../../../assets/js/core/bootstrap.min.js"></script>

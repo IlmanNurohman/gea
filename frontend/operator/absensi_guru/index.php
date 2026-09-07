@@ -42,7 +42,7 @@ $q_rekap = mysqli_query($conn, "SELECT guru.nama_guru, guru.nip, absensi_guru.ja
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Users</title>
+    <title>Absensi</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="../../../assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
 
@@ -404,6 +404,11 @@ $q_rekap = mysqli_query($conn, "SELECT guru.nama_guru, guru.nip, absensi_guru.ja
     <script src="../../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
     <!-- Kaiadmin JS -->
     <script src="../../../assets/js/kaiadmin.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.basic-datatables').DataTable({});
+    });
+    </script>
 </body>
 
 </html>

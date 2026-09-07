@@ -92,8 +92,10 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
             <div class="sidebar-wrapper scrollbar scrollbar-inner">
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
+
+                        <!-- Dashboard -->
                         <li class="nav-item">
-                            <a href="../dashboardOperator.php" class="collapsed" aria-expanded="false">
+                            <a href="../dashboardGuru.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>
                             </a>
@@ -106,42 +108,35 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
                             <h4 class="text-section">Menu</h4>
                         </li>
 
-                        <!-- Absensi Guru -->
+                        <!-- Materi -->
                         <li class="nav-item">
-                            <a href="../absensi_guru/index.php">
-                                <i class="fas fa-user-check"></i>
-                                <p>Absensi Guru</p>
+                            <a href="../materi/index.php">
+                                <i class="fas fa-book-open"></i>
+                                <p>Materi</p>
                             </a>
                         </li>
 
+                        <!-- Tugas -->
                         <li class="nav-item">
-                            <a href="../guru/index.php">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <p>Data Guru</p>
+                            <a href="../tugas/index.php">
+                                <i class="fas fa-tasks"></i>
+                                <p>Tugas</p>
                             </a>
                         </li>
 
-                        <!-- Data Siswa -->
+                        <!-- Nilai -->
                         <li class="nav-item">
-                            <a href="../siswa/index.php">
-                                <i class="fas fa-user-graduate"></i>
-                                <p>Data Siswa</p>
+                            <a href="../nilai/index.php">
+                                <i class="fas fa-star"></i>
+                                <p>Nilai</p>
                             </a>
                         </li>
 
-                        <!-- Data Kelas -->
+                        <!-- Jadwal -->
                         <li class="nav-item">
-                            <a href="../kelas/index.php">
-                                <i class="fas fa-chalkboard"></i>
-                                <p>Data Kelas</p>
-                            </a>
-                        </li>
-
-                        <!-- Users -->
-                        <li class="nav-item">
-                            <a href="../users/index.php">
-                                <i class="fas fa-users-cog"></i>
-                                <p>Users</p>
+                            <a href="../jadwal/index.php">
+                                <i class="fas fa-calendar-alt"></i>
+                                <p>Jadwal</p>
                             </a>
                         </li>
 
@@ -149,14 +144,22 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
                             <span class="sidebar-mini-icon">
                                 <i class="fa fa-ellipsis-h"></i>
                             </span>
-                            <h4 class="text-section">Jadwal</h4>
+                            <h4 class="text-section">Absensi</h4>
                         </li>
 
-                        <!-- Jadwal Siswa -->
+                        <!-- Absensi Siswa -->
                         <li class="nav-item">
-                            <a href="../jadwal/index.php">
-                                <i class="fas fa-calendar-alt"></i>
-                                <p>Jadwal</p>
+                            <a href="../absensi/index.php">
+                                <i class="fas fa-user-check"></i>
+                                <p>Absensi Siswa</p>
+                            </a>
+                        </li>
+
+                        <!-- Absensi Mandiri -->
+                        <li class="nav-item">
+                            <a href="../absensi_mandiri/index.php">
+                                <i class="fas fa-user-clock"></i>
+                                <p>Absensi Mandiri</p>
                             </a>
                         </li>
 
@@ -405,6 +408,11 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
                     </div>
                 </div>
             </div>
+            <footer class="footer">
+                <div class="container-fluid d-flex justify-content-center">
+                    <div class="copyright">&copy; 2026 All rights reserved.</div>
+                </div>
+            </footer>
         </div>
     </div>
 

@@ -2,23 +2,41 @@
 session_start();
 include '../../../backend/koneksi.php';
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'siswa') { die('Akses ditolak'); }
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'siswa') {
+    die('Akses ditolak');
+}
 
-$user_id = $_SESSION['user_id'] ?? '';
-$q_siswa = mysqli_query($conn, "SELECT id, kelas_id FROM siswa WHERE user_id = '$user_id'");
-$d_siswa = mysqli_fetch_assoc($q_siswa);
-$siswa_id = $d_siswa['id'] ?? 0;
-$kelas_id = $d_siswa['kelas_id'] ?? 0;
+// Session hanya menyimpan user_id (id dari tabel users), bukan kelas_id.
+// ASUMSI: tabel siswa memiliki kolom user_id yang berelasi ke tabel users.
+// Jika nama kolomnya berbeda (mis. id_user), sesuaikan query di bawah ini.
+if (!isset($_SESSION['user_id'])) {
+    die('Sesi siswa tidak valid. Silakan login ulang.');
+}
+$user_id = $_SESSION['user_id'];
 
-$query_tugas = "SELECT tugas.*, mapel.nama_mapel, guru.nama_guru,
-               pengumpulan_tugas.id as id_kumpul, pengumpulan_tugas.nilai, pengumpulan_tugas.catatan_guru
-               FROM tugas 
-               JOIN mapel ON tugas.mapel_id = mapel.id 
-               JOIN guru ON tugas.guru_id = guru.id 
-               LEFT JOIN pengumpulan_tugas ON tugas.id = pengumpulan_tugas.tugas_id AND pengumpulan_tugas.siswa_id = '$siswa_id'
-               WHERE tugas.kelas_id = '$kelas_id' 
-               ORDER BY tugas.deadline DESC";
-$data_tugas = mysqli_query($conn, $query_tugas);
+$q_siswa = mysqli_query($conn, "SELECT kelas_id, nama_lengkap FROM siswa WHERE user_id = '" . mysqli_real_escape_string($conn, $user_id) . "'");
+$siswa_row = mysqli_fetch_assoc($q_siswa);
+
+if (!$siswa_row || empty($siswa_row['kelas_id'])) {
+    die('Data siswa tidak ditemukan atau belum terhubung ke kelas manapun. Hubungi admin/operator.');
+}
+$kelas_id = $siswa_row['kelas_id'];
+
+// Ambil nama kelas untuk ditampilkan di header
+$q_kelas = mysqli_query($conn, "SELECT nama_kelas FROM kelas WHERE id = '" . mysqli_real_escape_string($conn, $kelas_id) . "'");
+$kelas_row = mysqli_fetch_assoc($q_kelas);
+$nama_kelas = $kelas_row['nama_kelas'] ?? 'Kelas';
+
+// Fetch jadwal khusus kelas siswa yang login
+$query_jadwal = "SELECT jadwal.*, kelas.nama_kelas, mapel.nama_mapel, guru.nama_guru 
+                 FROM jadwal 
+                 JOIN kelas ON jadwal.kelas_id = kelas.id 
+                 JOIN mapel ON jadwal.mapel_id = mapel.id 
+                 JOIN guru ON jadwal.guru_id = guru.id 
+                 WHERE jadwal.kelas_id = '" . mysqli_real_escape_string($conn, $kelas_id) . "'
+                 ORDER BY FIELD(jadwal.hari, 'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'), jadwal.jam_masuk ASC";
+$res_jadwal = mysqli_query($conn, $query_jadwal);
+$jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +44,7 @@ $data_tugas = mysqli_query($conn, $query_tugas);
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Tugas</title>
+    <title>Jadwal Pelajaran</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="../../../assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
 
@@ -60,14 +78,12 @@ $data_tugas = mysqli_query($conn, $query_tugas);
 
 <body>
     <div class="wrapper">
-        <!-- Sidebar -->
-        <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="../index.html" class="logo">
-                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                    <a href="" class="logo">
+                        <img src="../../assets/img/logo.png" alt="navbar brand" class="navbar-brand" height="20" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -128,7 +144,7 @@ $data_tugas = mysqli_query($conn, $query_tugas);
 
                         <!-- Jadwal -->
                         <li class="nav-item">
-                            <a href="../jadwal/index.php">
+                            <a href="../adwal/index.php">
                                 <i class="fas fa-calendar-alt"></i>
                                 <p>Jadwal</p>
                             </a>
@@ -137,12 +153,13 @@ $data_tugas = mysqli_query($conn, $query_tugas);
                 </div>
             </div>
         </div>
+        <!-- End Sidebar -->
+
         <div class="main-panel">
             <div class="main-header">
                 <div class="main-header-logo">
-                    <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
-                        <a href="../dashboard_superadmin.php" class="logo">
+                        <a href="../dashboardSiswa.php" class="logo">
                             <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
                         </a>
                         <div class="nav-toggle">
@@ -157,27 +174,10 @@ $data_tugas = mysqli_query($conn, $query_tugas);
                             <i class="gg-more-vertical-alt"></i>
                         </button>
                     </div>
-                    <!-- End Logo Header -->
                 </div>
-                <!-- Navbar Header -->
                 <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                     <div class="container-fluid">
-
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
-                                    aria-expanded="false" aria-haspopup="true">
-                                    <i class="fa fa-search"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-search animated fadeIn">
-                                    <form class="navbar-left navbar-form nav-search">
-                                        <div class="input-group">
-                                            <input type="text" placeholder="Search ..." class="form-control" />
-                                        </div>
-                                    </form>
-                                </ul>
-                            </li>
-
                             <li class="nav-item topbar-user dropdown hidden-caret">
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                     aria-expanded="false">
@@ -186,29 +186,13 @@ $data_tugas = mysqli_query($conn, $query_tugas);
                                             class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
-
-                                        <span class="fw-bold">Super Admin</span>
+                                        <span class="fw-bold"><?= htmlspecialchars($nama_kelas) ?></span>
                                     </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-user animated fadeIn">
                                     <div class="dropdown-user-scroll scrollbar-outer">
                                         <li>
-                                            <div class="user-box">
-                                                <div class="avatar-lg">
-                                                    <img src="../../../assets/img/cs admin.png" alt="image profile"
-                                                        class="avatar-img rounded" />
-                                                </div>
-                                                <div class="u-text">
-                                                    <h4>Super Admin</h4>
-                                                    <p class="text-muted">superadmin@gmail.com</p>
-                                                    <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li>
                                             <div class="dropdown-divider"></div>
-
                                             <a class="dropdown-item" href="../../../logout.php">Logout</a>
                                         </li>
                                     </div>
@@ -217,106 +201,79 @@ $data_tugas = mysqli_query($conn, $query_tugas);
                         </ul>
                     </div>
                 </nav>
-                <!-- End Navbar -->
             </div>
+
             <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3">Tugas</h3>
+                        <h3 class="fw-bold mb-3">Jadwal Pelajaran</h3>
                         <ul class="breadcrumbs mb-3">
                             <li class="nav-home">
-                                <a href="#">
-                                    <i class="fas fa-tasks"></i>
-                                </a>
+                                <a href="#"><i class="fas fa-calendar-alt"></i></a>
                             </li>
+                            <li class="separator"><i class="icon-arrow-right"></i></li>
+                            <li class="nav-item"><a href="#"></a>Manajemen Jadwal</li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Manajemen Tugas</a>
-                            </li>
-                            <li class="separator">
-                                <i class="icon-arrow-right"></i>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#">Data Tugas</a>
+                                <a href="#">Jadwal Kelas Saya</a>
                             </li>
                         </ul>
                     </div>
-                    <h4>Daftar Tugas Saya</h4>
-
                     <div class="row">
-                        <?php if (mysqli_num_rows($data_tugas) > 0) : ?>
-                        <?php while ($t = mysqli_fetch_assoc($data_tugas)) : ?>
-                        <div class="col-md-12 mb-3">
+                        <div class="col-md-12">
                             <div class="card">
-                                <div class="card-header d-flex justify-content-between">
-                                    <strong><?= $t['nama_mapel'] ?> (<?= $t['nama_guru'] ?>)</strong>
-                                    <small class="text-danger">Deadline:
-                                        <?= date('d-m-Y H:i', strtotime($t['deadline'])) ?></small>
+                                <div class="card-header">
+                                    <h4 class="card-title">Jadwal Pelajaran - <?= htmlspecialchars($nama_kelas) ?></h4>
                                 </div>
                                 <div class="card-body">
-                                    <h5><?= htmlspecialchars($t['judul']) ?></h5>
-                                    <p><?= nl2br(htmlspecialchars($t['deskripsi'])) ?></p>
-
-                                    <?php if ($t['file_tugas']) : ?>
-                                    <div class="text-end">
-                                        <a href="../../../uploads/tugas/<?= $t['file_tugas'] ?>" target="_blank"
-                                            class="btn btn-primary btn-sm mb-3">Download Soal / Lampiran</a>
+                                    <div class="table-responsive">
+                                        <table class="display table table-striped table-hover basic-datatables">
+                                            <thead>
+                                                <tr>
+                                                    <th>Hari</th>
+                                                    <th>Jam</th>
+                                                    <th>Mata Pelajaran</th>
+                                                    <th>Guru Pengajar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (count($jadwal_list) === 0) : ?>
+                                                <tr>
+                                                    <td colspan="4" class="text-center">Belum ada jadwal pelajaran</td>
+                                                </tr>
+                                                <?php else : ?>
+                                                <?php foreach ($jadwal_list as $j) : ?>
+                                                <tr>
+                                                    <td><span
+                                                            class="badge bg-info"><?= htmlspecialchars($j['hari']) ?></span>
+                                                    </td>
+                                                    <td><?= date('H:i', strtotime($j['jam_masuk'])) ?> -
+                                                        <?= date('H:i', strtotime($j['jam_keluar'])) ?></td>
+                                                    <td><strong><?= htmlspecialchars($j['nama_mapel']) ?></strong>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($j['nama_guru']) ?></td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                    <?php endif; ?>
-
-                                    <hr>
-                                    <?php if ($t['id_kumpul']) : ?>
-                                    <div class="alert alert-success">
-                                        <strong>Sudah Dikumpulkan</strong><br>
-                                        Nilai:
-                                        <strong><?= $t['nilai'] !== NULL ? $t['nilai'] : 'Belum Dinilai' ?></strong><br>
-                                        Catatan Guru: <em><?= htmlspecialchars($t['catatan_guru'] ?? '-') ?></em>
-                                    </div>
-                                    <?php else : ?>
-                                    <!-- Form Kerjakan & Upload Jawaban -->
-                                    <form action="kumpul_tugas.php" method="POST" enctype="multipart/form-data">
-                                        <input type="hidden" name="tugas_id" value="<?= $t['id'] ?>">
-                                        <input type="hidden" name="siswa_id" value="<?= $siswa_id ?>">
-
-                                        <div class="mb-2">
-                                            <label class="form-label">Upload File Jawaban (PDF/DOCX/JPG/ZIP)</label>
-                                            <input type="file" name="file_jawaban" class="form-control" required>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input type="text" name="catatan_siswa" class="form-control"
-                                                placeholder="Catatan singkat (Opsional)">
-                                        </div>
-                                        <button type="submit" class="btn btn-success w-100">Kirim Jawaban</button>
-                                    </form>
-                                    <?php endif; ?>
-
                                 </div>
                             </div>
                         </div>
-                        <?php endwhile; ?>
-                        <?php else : ?>
-                        <div class="col-12">
-                            <div class="alert alert-warning text-center">Belum ada tugas yang diunggah untuk
-                                Anda kerjakan.
-                            </div>
-                        </div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>
             <footer class="footer">
                 <div class="container-fluid d-flex justify-content-center">
-
-                    <div class="copyright ">
-                        &copy; 2026 All rights reserved.
-                    </div>
-
+                    <div class="copyright">&copy; 2026 All rights reserved.</div>
                 </div>
             </footer>
         </div>
     </div>
+
     <script src="../../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../../assets/js/core/popper.min.js"></script>
     <script src="../../../assets/js/core/bootstrap.min.js"></script>
@@ -324,6 +281,11 @@ $data_tugas = mysqli_query($conn, $query_tugas);
     <script src="../../../assets/js/plugin/datatables/datatables.min.js"></script>
     <script src="../../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
     <script src="../../../assets/js/kaiadmin.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.basic-datatables').DataTable({});
+    });
+    </script>
 </body>
 
 </html>

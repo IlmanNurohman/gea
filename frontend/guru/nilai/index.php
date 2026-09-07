@@ -2,18 +2,36 @@
 session_start();
 include '../../../backend/koneksi.php';
 
-$tugas_id = $_GET['tugas_id'] ?? 0;
-$q_tugas  = mysqli_query($conn, "SELECT tugas.*, mapel.nama_mapel, kelas.nama_kelas FROM tugas JOIN mapel ON tugas.mapel_id=mapel.id JOIN kelas ON tugas.kelas_id=kelas.id WHERE tugas.id='$tugas_id'");
-$d_tugas  = mysqli_fetch_assoc($q_tugas);
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'guru') { die('Akses ditolak'); }
 
-$q_pengumpulan = mysqli_query($conn, "SELECT pengumpulan_tugas.*, siswa.nama_lengkap, siswa.nisn 
-                                      FROM pengumpulan_tugas 
-                                      JOIN siswa ON pengumpulan_tugas.siswa_id = siswa.id 
-                                      WHERE pengumpulan_tugas.tugas_id = '$tugas_id' 
-                                      ORDER BY pengumpulan_tugas.waktu_kumpul ASC");
+$user_id = $_SESSION['user_id'] ?? '';
+$q_guru  = mysqli_query($conn, "SELECT id FROM guru WHERE user_id = '$user_id'");
+$d_guru  = mysqli_fetch_assoc($q_guru);
+$guru_id = $d_guru['id'] ?? 0;
+
+// Filter
+$kelas_id = $_GET['kelas_id'] ?? '';
+$mapel_id = $_GET['mapel_id'] ?? '';
+
+// Master Data Filter
+$kelas_list = mysqli_query($conn, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
+$mapel_list = mysqli_query($conn, "SELECT * FROM mapel ORDER BY nama_mapel ASC");
+
+$siswa_list = [];
+if (!empty($kelas_id) && !empty($mapel_id)) {
+    // Query mengambil siswa & nilai UTS/UAS
+    $q_siswa = "SELECT siswa.id AS siswa_id, siswa.nisn, siswa.nama_lengkap,
+                (SELECT nilai FROM nilai_ujian WHERE siswa_id = siswa.id AND kelas_id = '$kelas_id' AND mapel_id = '$mapel_id' AND jenis_ujian = 'UTS') as nilai_uts,
+                (SELECT nilai FROM nilai_ujian WHERE siswa_id = siswa.id AND kelas_id = '$kelas_id' AND mapel_id = '$mapel_id' AND jenis_ujian = 'UAS') as nilai_uas
+                FROM siswa 
+                WHERE siswa.kelas_id = '$kelas_id' 
+                ORDER BY siswa.nama_lengkap ASC";
+    $siswa_list = mysqli_query($conn, $q_siswa);
+}
 ?>
 
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -255,67 +273,119 @@ $q_pengumpulan = mysqli_query($conn, "SELECT pengumpulan_tugas.*, siswa.nama_len
                     </div>
                     <div class="row">
                         <div class="col-md-12">
+                            <div class=" mb-3">
+                                <?php if (!empty($kelas_id) && !empty($mapel_id)) : ?>
+                                <a href="tambah.php?kelas_id=<?= $kelas_id ?>&mapel_id=<?= $mapel_id ?>"
+                                    class="btn btn-primary">
+                                    <i class="fa fa-plus"></i> Input / Edit Nilai
+                                </a>
+                                <?php endif; ?>
+                            </div>
 
+                            <!-- Form Filter -->
+                            <div class="card">
+                                <div class="card-body">
+                                    <form method="GET" class="row g-3">
+                                        <div class="col-md-5">
+                                            <label class="form-label fw-bold">Pilih Kelas</label>
+                                            <select name="kelas_id" class="form-select" required>
+                                                <option value="">-- Pilih Kelas --</option>
+                                                <?php while ($k = mysqli_fetch_assoc($kelas_list)) : ?>
+                                                <option value="<?= $k['id'] ?>"
+                                                    <?= $kelas_id == $k['id'] ? 'selected' : '' ?>>
+                                                    <?= $k['nama_kelas'] ?></option>
+                                                <?php endwhile; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label fw-bold">Pilih Mata Pelajaran</label>
+                                            <select name="mapel_id" class="form-select" required>
+                                                <option value="">-- Pilih Mapel --</option>
+                                                <?php while ($m = mysqli_fetch_assoc($mapel_list)) : ?>
+                                                <option value="<?= $m['id'] ?>"
+                                                    <?= $mapel_id == $m['id'] ? 'selected' : '' ?>>
+                                                    <?= $m['nama_mapel'] ?></option>
+                                                <?php endwhile; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-info w-100 text-white">
+                                                <i class="fa fa-search"></i> Tampilkan
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Tabel Rekapitulasi Nilai -->
+                            <?php if (!empty($kelas_id) && !empty($mapel_id)) : ?>
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">Pengumpulan Tugas: <?= htmlspecialchars($d_tugas['judul']) ?>
-                                        (<?= $d_tugas['nama_kelas'] ?>)</h4>
+                                    <h4 class="card-title">Daftar Nilai Siswa</h4>
                                 </div>
+
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table id="basic-datatables" class="display table table-striped table-hover">
                                             <thead>
                                                 <tr>
-                                                    <th>NISN</th>
+                                                    <th style="width: 5%;" class="text-center">No</th>
+                                                    <th style="width: 15%;">NISN</th>
                                                     <th>Nama Siswa</th>
-                                                    <th>Waktu Kumpul</th>
-                                                    <th>File Jawaban</th>
-                                                    <th>Nilai</th>
-                                                    <th>Aksi / Beri Nilai</th>
+                                                    <th class="text-center" style="width: 15%;">Nilai UTS</th>
+                                                    <th class="text-center" style="width: 15%;">Nilai UAS</th>
+                                                    <th class="text-center" style="width: 15%;">Rata-Rata</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php while ($p = mysqli_fetch_assoc($q_pengumpulan)) : ?>
+                                                <?php if (mysqli_num_rows($siswa_list) > 0) : ?>
+                                                <?php 
+                                    $no = 1;
+                                    while ($s = mysqli_fetch_assoc($siswa_list)) : 
+                                        $uts = $s['nilai_uts'];
+                                        $uas = $s['nilai_uas'];
+                                        $rata = ($uts !== NULL && $uas !== NULL) ? number_format(($uts + $uas) / 2, 1) : '-';
+                                    ?>
                                                 <tr>
-                                                    <td><?= $p['nisn'] ?></td>
-                                                    <td><?= $p['nama_lengkap'] ?></td>
-                                                    <td><?= date('d-m-Y H:i', strtotime($p['waktu_kumpul'])) ?></td>
-                                                    <td><a href="../../../uploads/jawaban/<?= $p['file_jawaban'] ?>"
-                                                            target="_blank" class="btn btn-info btn-sm">Lihat File</a>
+                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td><?= htmlspecialchars($s['nisn']) ?></td>
+                                                    <td><strong><?= htmlspecialchars($s['nama_lengkap']) ?></strong>
                                                     </td>
-                                                    <td>
-                                                        <strong><?= $p['nilai'] !== NULL ? $p['nilai'] : '<span class="text-danger">Belum Dinilai</span>' ?></strong>
+                                                    <td class="text-center">
+                                                        <?= $uts !== NULL ? '<span class="badge bg-info fs-6">' . $uts . '</span>' : '<span class="text-muted">-</span>' ?>
                                                     </td>
-                                                    <td>
-                                                        <form action="proses_tugas.php?aksi=nilai" method="POST"
-                                                            class="d-flex gap-2">
-                                                            <input type="hidden" name="id_kumpul"
-                                                                value="<?= $p['id'] ?>">
-                                                            <input type="hidden" name="tugas_id"
-                                                                value="<?= $tugas_id ?>">
-                                                            <input type="number" name="nilai" value="<?= $p['nilai'] ?>"
-                                                                class="form-control form-control-sm" style="width:70px;"
-                                                                placeholder="0-100" required>
-                                                            <input type="text" name="catatan_guru"
-                                                                value="<?= htmlspecialchars($p['catatan_guru'] ?? '') ?>"
-                                                                class="form-control form-control-sm"
-                                                                placeholder="Catatan">
-                                                            <button type="submit"
-                                                                class="btn btn-success btn-sm">Simpan</button>
-                                                        </form>
+                                                    <td class="text-center">
+                                                        <?= $uas !== NULL ? '<span class="badge bg-warning text-dark fs-6">' . $uas . '</span>' : '<span class="text-muted">-</span>' ?>
                                                     </td>
+                                                    <td class="text-center fw-bold"><?= $rata ?></td>
                                                 </tr>
                                                 <?php endwhile; ?>
+                                                <?php else : ?>
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-muted">Belum ada data siswa
+                                                        pada
+                                                        kelas
+                                                        ini.
+                                                    </td>
+                                                </tr>
+                                                <?php endif; ?>
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
                             </div>
+                            <?php else : ?>
+                            <div class="alert alert-info text-center">
+                                Silakan pilih <strong>Kelas</strong> dan <strong>Mata Pelajaran</strong> terlebih dahulu
+                                untuk
+                                melihat
+                                daftar nilai.
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
-
             <footer class="footer">
                 <div class="container-fluid d-flex justify-content-center">
 

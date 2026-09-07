@@ -7,18 +7,16 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'siswa') { die('Akses dit
 $user_id = $_SESSION['user_id'] ?? '';
 $q_siswa = mysqli_query($conn, "SELECT id, kelas_id FROM siswa WHERE user_id = '$user_id'");
 $d_siswa = mysqli_fetch_assoc($q_siswa);
-$siswa_id = $d_siswa['id'] ?? 0;
 $kelas_id = $d_siswa['kelas_id'] ?? 0;
 
-$query_tugas = "SELECT tugas.*, mapel.nama_mapel, guru.nama_guru,
-               pengumpulan_tugas.id as id_kumpul, pengumpulan_tugas.nilai, pengumpulan_tugas.catatan_guru
-               FROM tugas 
-               JOIN mapel ON tugas.mapel_id = mapel.id 
-               JOIN guru ON tugas.guru_id = guru.id 
-               LEFT JOIN pengumpulan_tugas ON tugas.id = pengumpulan_tugas.tugas_id AND pengumpulan_tugas.siswa_id = '$siswa_id'
-               WHERE tugas.kelas_id = '$kelas_id' 
-               ORDER BY tugas.deadline DESC";
-$data_tugas = mysqli_query($conn, $query_tugas);
+// Fetch Materi Sesuai Kelas Siswa
+$query_materi = "SELECT materi.*, mapel.nama_mapel, guru.nama_guru 
+                FROM materi 
+                JOIN mapel ON materi.mapel_id = mapel.id 
+                JOIN guru ON materi.guru_id = guru.id 
+                WHERE materi.kelas_id = '$kelas_id' 
+                ORDER BY materi.tanggal DESC, materi.id DESC";
+$data_materi = mysqli_query($conn, $query_materi);
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +24,7 @@ $data_tugas = mysqli_query($conn, $query_tugas);
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Tugas</title>
+    <title>Materi</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="../../../assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
 
@@ -60,7 +58,6 @@ $data_tugas = mysqli_query($conn, $query_tugas);
 
 <body>
     <div class="wrapper">
-        <!-- Sidebar -->
         <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
             <div class="sidebar-logo">
@@ -137,6 +134,7 @@ $data_tugas = mysqli_query($conn, $query_tugas);
                 </div>
             </div>
         </div>
+
         <div class="main-panel">
             <div class="main-header">
                 <div class="main-header-logo">
@@ -222,87 +220,67 @@ $data_tugas = mysqli_query($conn, $query_tugas);
             <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3">Tugas</h3>
+                        <h3 class="fw-bold mb-3">Materi</h3>
                         <ul class="breadcrumbs mb-3">
                             <li class="nav-home">
                                 <a href="#">
-                                    <i class="fas fa-tasks"></i>
+                                    <i class="fas fa-book-open"></i>
                                 </a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Manajemen Tugas</a>
+                                <a href="#">Manajemen Materi</a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Data Tugas</a>
+                                <a href="#">Data Materi</a>
                             </li>
                         </ul>
                     </div>
-                    <h4>Daftar Tugas Saya</h4>
+                    <h4>Materi Pembelajaran</h4>
 
                     <div class="row">
-                        <?php if (mysqli_num_rows($data_tugas) > 0) : ?>
-                        <?php while ($t = mysqli_fetch_assoc($data_tugas)) : ?>
-                        <div class="col-md-12 mb-3">
+                        <div class="col-md-12">
+                            <?php if (mysqli_num_rows($data_materi) > 0) : ?>
+                            <?php while ($m = mysqli_fetch_assoc($data_materi)) : ?>
+
                             <div class="card">
-                                <div class="card-header d-flex justify-content-between">
-                                    <strong><?= $t['nama_mapel'] ?> (<?= $t['nama_guru'] ?>)</strong>
-                                    <small class="text-danger">Deadline:
-                                        <?= date('d-m-Y H:i', strtotime($t['deadline'])) ?></small>
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong><?= $m['nama_mapel'] ?></strong>
+                                        <span class="badge bg-info"><?= htmlspecialchars($m['pertemuan']) ?></span>
+                                    </div>
+                                    <small class="text-muted">Guru: <?= htmlspecialchars($m['nama_guru']) ?> |
+                                        Tanggal:
+                                        <?= date('d-m-Y', strtotime($m['tanggal'])) ?></small>
                                 </div>
                                 <div class="card-body">
-                                    <h5><?= htmlspecialchars($t['judul']) ?></h5>
-                                    <p><?= nl2br(htmlspecialchars($t['deskripsi'])) ?></p>
-
-                                    <?php if ($t['file_tugas']) : ?>
+                                    <h5><?= htmlspecialchars($m['judul']) ?></h5>
+                                    <p class="text-secondary">
+                                        <?= nl2br(htmlspecialchars($m['deskripsi'] ?? 'TIDAK ADA DESKRIPSI')) ?></p>
                                     <div class="text-end">
-                                        <a href="../../../uploads/tugas/<?= $t['file_tugas'] ?>" target="_blank"
-                                            class="btn btn-primary btn-sm mb-3">Download Soal / Lampiran</a>
+                                        <a href="../../../uploads/materi/<?= $m['file_materi'] ?>" target="_blank"
+                                            class="btn btn-primary btn-sm">
+                                            <i class="fa fa-download"></i> Download / Lihat Materi
+                                        </a>
                                     </div>
-                                    <?php endif; ?>
-
-                                    <hr>
-                                    <?php if ($t['id_kumpul']) : ?>
-                                    <div class="alert alert-success">
-                                        <strong>Sudah Dikumpulkan</strong><br>
-                                        Nilai:
-                                        <strong><?= $t['nilai'] !== NULL ? $t['nilai'] : 'Belum Dinilai' ?></strong><br>
-                                        Catatan Guru: <em><?= htmlspecialchars($t['catatan_guru'] ?? '-') ?></em>
-                                    </div>
-                                    <?php else : ?>
-                                    <!-- Form Kerjakan & Upload Jawaban -->
-                                    <form action="kumpul_tugas.php" method="POST" enctype="multipart/form-data">
-                                        <input type="hidden" name="tugas_id" value="<?= $t['id'] ?>">
-                                        <input type="hidden" name="siswa_id" value="<?= $siswa_id ?>">
-
-                                        <div class="mb-2">
-                                            <label class="form-label">Upload File Jawaban (PDF/DOCX/JPG/ZIP)</label>
-                                            <input type="file" name="file_jawaban" class="form-control" required>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input type="text" name="catatan_siswa" class="form-control"
-                                                placeholder="Catatan singkat (Opsional)">
-                                        </div>
-                                        <button type="submit" class="btn btn-success w-100">Kirim Jawaban</button>
-                                    </form>
-                                    <?php endif; ?>
-
                                 </div>
                             </div>
-                        </div>
-                        <?php endwhile; ?>
-                        <?php else : ?>
-                        <div class="col-12">
-                            <div class="alert alert-warning text-center">Belum ada tugas yang diunggah untuk
-                                Anda kerjakan.
+
+                            <?php endwhile; ?>
+                            <?php else : ?>
+                            <div class="col-12">
+                                <div class="alert alert-warning text-center">Belum ada materi yang diunggah untuk
+                                    kelas
+                                    Anda.
+                                </div>
                             </div>
+                            <?php endif; ?>
                         </div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>

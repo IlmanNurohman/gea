@@ -2,8 +2,8 @@
 session_start();
 include '../../backend/koneksi.php';
 
-if ($_SESSION['role'] != 'operator') {
-    header("Location: login.php");
+if ($_SESSION['role'] != 'guru') {
+    header("Location: ../../login.php");
     exit;
 }
 
@@ -12,63 +12,6 @@ $id = $_SESSION['user_id'] ?? null;
 if (!$id) {
     die('User belum login');
 }
-$today = date('Y-m-d');
-
-// Nama hari dalam bahasa Indonesia
-$hari_inggris = date('l');
-$hari_map = [
-    'Sunday'    => 'Minggu',
-    'Monday'    => 'Senin',
-    'Tuesday'   => 'Selasa',
-    'Wednesday' => 'Rabu',
-    'Thursday'  => 'Kamis',
-    'Friday'    => 'Jumat',
-    'Saturday'  => 'Sabtu'
-];
-
-$hari_ini = $hari_map[$hari_inggris];
-
-// 1. Total guru yang memiliki jadwal mengajar hari ini
-$q_total_guru = mysqli_query($conn, "
-    SELECT COUNT(DISTINCT guru_id) AS total
-    FROM jadwal
-    WHERE hari = '$hari_ini'
-");
-
-$d_total_guru = mysqli_fetch_assoc($q_total_guru);
-$total_guru = (int) ($d_total_guru['total'] ?? 0);
-
-
-// 2. Jumlah guru yang sudah absensi hari ini
-$q_sudah_absen = mysqli_query($conn, "
-    SELECT COUNT(DISTINCT guru_id) AS total
-    FROM absensi_guru
-    WHERE tanggal = '$today'
-");
-
-$d_sudah_absen = mysqli_fetch_assoc($q_sudah_absen);
-$sudah_absen = (int) ($d_sudah_absen['total'] ?? 0);
-
-
-// 3. Jumlah guru yang belum absensi
-$belum_absen = max(0, $total_guru - $sudah_absen);
-
-$q_users = mysqli_query($conn, "
-    SELECT COUNT(id) AS total
-    FROM users
-");
-
-$d_users = mysqli_fetch_assoc($q_users);
-$users = (int) ($d_users['total'] ?? 0);
-
-$q_siswa = mysqli_query($conn, "
-    SELECT COUNT(id) AS total
-    FROM siswa
-");
-
-$d_siswa = mysqli_fetch_assoc($q_siswa);
-$siswa = (int) ($d_siswa['total'] ?? 0);
-
 
 ?>
 
@@ -78,7 +21,7 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Admin Dashboard</title>
+    <title>Guru Dashboard</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
 
@@ -120,11 +63,10 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="" class=" logo">
-                        <img src="../../assets/img/logo.png" alt="navbar brand"
-                            style="height: 30px; margin-right: 10px;" />
+                    <a href="../index.html" class="logo">
+                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
                     </a>
-                    <div class=" nav-toggle">
+                    <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
                             <i class="gg-menu-right"></i>
                         </button>
@@ -141,8 +83,10 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
             <div class="sidebar-wrapper scrollbar scrollbar-inner">
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
+
+                        <!-- Dashboard -->
                         <li class="nav-item">
-                            <a href="../dashboard_superadmin.php" class="collapsed" aria-expanded="false">
+                            <a href="../dashboardGuru.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>
                             </a>
@@ -155,42 +99,35 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                             <h4 class="text-section">Menu</h4>
                         </li>
 
-                        <!-- Absensi Guru -->
+                        <!-- Materi -->
                         <li class="nav-item">
-                            <a href="absensi_guru/index.php">
-                                <i class="fas fa-user-check"></i>
-                                <p>Absensi Guru</p>
+                            <a href="materi/index.php">
+                                <i class="fas fa-book-open"></i>
+                                <p>Materi</p>
                             </a>
                         </li>
 
+                        <!-- Tugas -->
                         <li class="nav-item">
-                            <a href="guru/index.php">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <p>Data Guru</p>
+                            <a href="tugas/index.php">
+                                <i class="fas fa-tasks"></i>
+                                <p>Tugas</p>
                             </a>
                         </li>
 
-                        <!-- Data Siswa -->
+                        <!-- Nilai -->
                         <li class="nav-item">
-                            <a href="siswa/index.php">
-                                <i class="fas fa-user-graduate"></i>
-                                <p>Data Siswa</p>
+                            <a href="nilai/index.php">
+                                <i class="fas fa-star"></i>
+                                <p>Nilai</p>
                             </a>
                         </li>
 
-                        <!-- Data Kelas -->
+                        <!-- Jadwal -->
                         <li class="nav-item">
-                            <a href="kelas/index.php">
-                                <i class="fas fa-chalkboard"></i>
-                                <p>Data Kelas</p>
-                            </a>
-                        </li>
-
-                        <!-- Users -->
-                        <li class="nav-item">
-                            <a href="users/index.php">
-                                <i class="fas fa-users-cog"></i>
-                                <p>Users</p>
+                            <a href="jadwal/index.php">
+                                <i class="fas fa-calendar-alt"></i>
+                                <p>Jadwal</p>
                             </a>
                         </li>
 
@@ -198,14 +135,22 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                             <span class="sidebar-mini-icon">
                                 <i class="fa fa-ellipsis-h"></i>
                             </span>
-                            <h4 class="text-section">Jadwal</h4>
+                            <h4 class="text-section">Absensi</h4>
                         </li>
 
-                        <!-- Jadwal Siswa -->
+                        <!-- Absensi Siswa -->
                         <li class="nav-item">
-                            <a href="jadwal/index.php">
-                                <i class="fas fa-calendar-alt"></i>
-                                <p>Jadwal</p>
+                            <a href="absensi/index.php">
+                                <i class="fas fa-user-check"></i>
+                                <p>Absensi Siswa</p>
+                            </a>
+                        </li>
+
+                        <!-- Absensi Mandiri -->
+                        <li class="nav-item">
+                            <a href="absensi_mandiri/index.php">
+                                <i class="fas fa-user-clock"></i>
+                                <p>Absensi Mandiri</p>
                             </a>
                         </li>
 
@@ -236,8 +181,9 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                 <div class="main-header-logo">
                     <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
-                        <a href="" class="logo">
-                            <img src="../../assets/img/logo.png" alt="navbar brand" class="navbar-brand" height="20" />
+                        <a href="index.html" class="logo">
+                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand"
+                                height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -385,7 +331,7 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                                             <div class="numbers">
                                                 <p class="card-category">Users</p>
                                                 <h4 class="card-title">
-                                                    <?= $users ?>
+
                                                 </h4>
                                             </div>
                                         </div>
@@ -407,7 +353,7 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                                             <div class="numbers">
                                                 <p class="card-category">Siswa</p>
                                                 <h4 class="card-title">
-                                                    <?= $siswa ?>
+
                                                 </h4>
                                             </div>
                                         </div>
@@ -429,7 +375,7 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                                             <div class="numbers">
                                                 <p class="card-category">Guru Sudah Absensi</p>
                                                 <h4 class="card-title">
-                                                    <?= $sudah_absen ?>
+
                                                 </h4>
                                             </div>
                                         </div>
@@ -451,7 +397,7 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                                             <div class="numbers">
                                                 <p class="card-category">Guru Belum Absensi</p>
                                                 <h4 class="card-title">
-                                                    <?= $belum_absen ?>
+
                                                 </h4>
                                             </div>
                                         </div>

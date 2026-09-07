@@ -10,7 +10,7 @@ $id = (int)$_POST['id'];
 
 if (isset($_POST['update'])) {
 
-    $namaKelas = mysqli_real_escape_string($conn, $_POST['nam_kelas']);
+    $namaKelas = mysqli_real_escape_string($conn, $_POST['nama_kelas']);
     $waliKelas     = mysqli_real_escape_string($conn, $_POST['wali_kelas']);
 
         $query = mysqli_query($conn, "

@@ -2,48 +2,35 @@
 session_start();
 include '../../../backend/koneksi.php';
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'guru') {
-    die('Akses ditolak');
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'guru') { die('Akses ditolak'); }
+
+$user_id = $_SESSION['user_id'] ?? '';
+$q_guru  = mysqli_query($conn, "SELECT id FROM guru WHERE user_id = '$user_id'");
+$d_guru  = mysqli_fetch_assoc($q_guru);
+$guru_id = $d_guru['id'] ?? 0;
+
+// Filter
+$jenis_ujian = $_GET['jenis_ujian'] ?? '';
+$kelas_id    = $_GET['kelas_id'] ?? '';
+$mapel_id    = $_GET['mapel_id'] ?? '';
+
+// Master Data
+$kelas_list = mysqli_query($conn, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
+$mapel_list = mysqli_query($conn, "SELECT * FROM mapel ORDER BY nama_mapel ASC");
+
+$siswa_list = [];
+if (!empty($kelas_id) && !empty($mapel_id) && !empty($jenis_ujian)) {
+    // Ambil siswa di kelas tersebut beserta nilainya jika sudah diinput
+    $q_siswa = "SELECT siswa.id AS siswa_id, siswa.nisn, siswa.nama_lengkap, nilai_ujian.nilai 
+                FROM siswa 
+                LEFT JOIN nilai_ujian ON siswa.id = nilai_ujian.siswa_id 
+                          AND nilai_ujian.kelas_id = '$kelas_id' 
+                          AND nilai_ujian.mapel_id = '$mapel_id' 
+                          AND nilai_ujian.jenis_ujian = '$jenis_ujian'
+                WHERE siswa.kelas_id = '$kelas_id' 
+                ORDER BY siswa.nama_lengkap ASC";
+    $siswa_list = mysqli_query($conn, $q_siswa);
 }
-
-$user_id = $_SESSION['user_id'] ?? 0;
-
-// Ambil ID guru yang sedang login
-$q_guru = mysqli_query(
-    $conn,
-    "SELECT id, nama_guru, nip
-     FROM guru
-     WHERE user_id = '$user_id'
-     LIMIT 1"
-);
-
-$d_guru = mysqli_fetch_assoc($q_guru);
-
-if (!$d_guru) {
-    die('Data guru tidak ditemukan.');
-}
-
-$guru_id = (int) $d_guru['id'];
-
-$today = date('Y-m-d');
-
-$kelas_id = $_GET['kelas_id'] ?? '';
-
-// Ambil daftar kelas
-$data_kelas = mysqli_query(
-    $conn,
-    "SELECT *
-     FROM kelas
-     ORDER BY nama_kelas ASC"
-);
-$mapel_id = $_GET['mapel_id'] ?? '';
-
-$data_mapel = mysqli_query(
-    $conn,
-    "SELECT id, nama_mapel
-     FROM mapel
-     ORDER BY nama_mapel ASC"
-);
 ?>
 
 <!DOCTYPE html>
@@ -51,11 +38,11 @@ $data_mapel = mysqli_query(
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Users</title>
+    <title>Data Materi</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="../../../assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 
-    <!-- Fonts and icons -->
     <script src="../../../assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
     WebFont.load({
@@ -63,11 +50,8 @@ $data_mapel = mysqli_query(
             families: ["Public Sans:300,400,500,600,700"]
         },
         custom: {
-            families: [
-                "Font Awesome 5 Solid",
-                "Font Awesome 5 Regular",
-                "Font Awesome 5 Brands",
-                "simple-line-icons",
+            families: ["Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands",
+                "simple-line-icons"
             ],
             urls: ["../../../assets/css/fonts.min.css"],
         },
@@ -77,16 +61,13 @@ $data_mapel = mysqli_query(
     });
     </script>
 
-    <!-- CSS Files -->
     <link rel="stylesheet" href="../../../assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="../../../assets/css/plugins.min.css" />
-    <link rel="stylesheet" href="../../../assets/css/kaiadmin.min.css" />
     <link rel="stylesheet" href="../../../assets/css/kaiadmin.min.css" />
 </head>
 
 <body>
     <div class="wrapper">
-        <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
             <div class="sidebar-logo">
                 <!-- Logo Header -->
@@ -201,14 +182,14 @@ $data_mapel = mysqli_query(
                 </div>
             </div>
         </div>
-        <!-- End Sidebar -->
         <div class="main-panel">
             <div class="main-header">
                 <div class="main-header-logo">
                     <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
-                        <a href="../dashboard_superadmin.php" class="logo">
-                            <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                        <a href="" class="logo">
+                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand"
+                                height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -227,32 +208,15 @@ $data_mapel = mysqli_query(
                 <!-- Navbar Header -->
                 <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                     <div class="container-fluid">
-
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
-                                    aria-expanded="false" aria-haspopup="true">
-                                    <i class="fa fa-search"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-search animated fadeIn">
-                                    <form class="navbar-left navbar-form nav-search">
-                                        <div class="input-group">
-                                            <input type="text" placeholder="Search ..." class="form-control" />
-                                        </div>
-                                    </form>
-                                </ul>
-                            </li>
-
                             <li class="nav-item topbar-user dropdown hidden-caret">
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                     aria-expanded="false">
                                     <div class="avatar-sm">
-                                        <img src="../../../assets/img/cs admin.png" alt="..."
-                                            class="avatar-img rounded-circle" />
+                                        <img src="../../assets/img/user/" alt="..." class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
-
-                                        <span class="fw-bold">Super Admin</span>
+                                        <span class="fw-bold"><?= $_SESSION['username']; ?></span>
                                     </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-user animated fadeIn">
@@ -260,21 +224,22 @@ $data_mapel = mysqli_query(
                                         <li>
                                             <div class="user-box">
                                                 <div class="avatar-lg">
-                                                    <img src="../../../assets/img/cs admin.png" alt="image profile"
-                                                        class="avatar-img rounded" />
+                                                    <img src="                                        
+                                                        ../../assets/img/user/" alt="..." class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
-                                                    <h4>Super Admin</h4>
-                                                    <p class="text-muted">superadmin@gmail.com</p>
-                                                    <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View
+                                                    <h4><?= $_SESSION['username']; ?></h4>
+                                                    <p class="text-muted"><?= $_SESSION['email']; ?></p>
+
+                                                    <a href="../../profile.php"
+                                                        class="btn btn-xs btn-secondary btn-sm">View
                                                         Profile</a>
                                                 </div>
                                             </div>
                                         </li>
                                         <li>
                                             <div class="dropdown-divider"></div>
-
-                                            <a class="dropdown-item" href="../../../logout.php">Logout</a>
+                                            <a class="dropdown-item" href="../../logout.php">Logout</a>
                                         </li>
                                     </div>
                                 </ul>
@@ -284,265 +249,137 @@ $data_mapel = mysqli_query(
                 </nav>
                 <!-- End Navbar -->
             </div>
-
             <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3">Users</h3>
+                        <h3 class="fw-bold mb-3">Guru</h3>
                         <ul class="breadcrumbs mb-3">
                             <li class="nav-home">
                                 <a href="#">
-                                    <i class="fas fa-users"></i>
+                                    <i class="fas fa-chalkboard-teacher"></i>
                                 </a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Manajemen users</a>
+                                <a href="#">Manajemen Guru</a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Data Users</a>
+                                <a href="#">Data Guru</a>
                             </li>
                         </ul>
                     </div>
                     <div class="row">
                         <div class="col-md-12">
+
+                            <!-- Form Filter & Pilih Ujian -->
                             <div class="card">
-                                <div class="card-header">
-                                    <h4 class="card-title">Input Absensi Siswa</h4>
-                                    <span>Guru: <strong><?= htmlspecialchars($d_guru['nama_guru']) ?></span>
-                                </div>
                                 <div class="card-body">
-
-                                    <!-- Pilih Kelas -->
-                                    <form method="GET" class="row g-3 mb-4">
-
-                                        <div class="col-md-5">
-
-                                            <label class="form-label">
-                                                Pilih Kelas
-                                            </label>
-
-                                            <select name="kelas_id" class="form-select" onchange="this.form.submit()">
-
-                                                <option value="">
-                                                    -- Pilih Kelas --
-                                                </option>
-
-                                                <?php while ($k = mysqli_fetch_assoc($data_kelas)) : ?>
-
+                                    <form method="GET" class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Jenis Ujian</label>
+                                            <select name="jenis_ujian" class="form-select" required>
+                                                <option value="">-- Pilih Jenis --</option>
+                                                <option value="UTS" <?= $jenis_ujian === 'UTS' ? 'selected' : '' ?>>UTS
+                                                    (Ujian
+                                                    Tengah
+                                                    Semester)</option>
+                                                <option value="UAS" <?= $jenis_ujian === 'UAS' ? 'selected' : '' ?>>UAS
+                                                    (Ujian
+                                                    Akhir
+                                                    Semester)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Kelas</label>
+                                            <select name="kelas_id" class="form-select" required>
+                                                <option value="">-- Pilih Kelas --</option>
+                                                <?php while ($k = mysqli_fetch_assoc($kelas_list)) : ?>
                                                 <option value="<?= $k['id'] ?>"
                                                     <?= $kelas_id == $k['id'] ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($k['nama_kelas']) ?>
-                                                </option>
-
+                                                    <?= $k['nama_kelas'] ?></option>
                                                 <?php endwhile; ?>
-
                                             </select>
-
                                         </div>
-                                        <?php if (!empty($kelas_id)) : ?>
-
                                         <div class="col-md-4">
-
-                                            <label class="form-label">
-                                                Pilih Mata Pelajaran
-                                            </label>
-
-                                            <select name="mapel_id" class="form-select" onchange="this.form.submit()">
-
-                                                <option value="">
-                                                    -- Pilih Mata Pelajaran --
-                                                </option>
-
-                                                <?php while ($m = mysqli_fetch_assoc($data_mapel)) : ?>
-
+                                            <label class="form-label">Mata Pelajaran</label>
+                                            <select name="mapel_id" class="form-select" required>
+                                                <option value="">-- Pilih Mapel --</option>
+                                                <?php while ($m = mysqli_fetch_assoc($mapel_list)) : ?>
                                                 <option value="<?= $m['id'] ?>"
                                                     <?= $mapel_id == $m['id'] ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($m['nama_mapel']) ?>
-                                                </option>
-
+                                                    <?= $m['nama_mapel'] ?></option>
                                                 <?php endwhile; ?>
-
                                             </select>
-
                                         </div>
-
-                                        <?php endif; ?>
-
-
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary w-100">Tampilkan Siswa</button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
 
-
-                            <?php if (!empty($kelas_id) && !empty($mapel_id)) : ?>
-
-                            <?php
-
-                                // Ambil data siswa berdasarkan kelas
-                                $data_siswa = mysqli_query(
-                                    $conn,
-                                    "SELECT *
-                        FROM siswa
-                        WHERE kelas_id = '$kelas_id'
-                        ORDER BY nama_lengkap ASC"
-                                ); ?>
-
-                            <form action="simpan_absensi.php" method="POST">
-
-                                <!-- ID guru -->
-                                <input type="hidden" name="guru_id" value="<?= $guru_id ?>">
-
-                                <!-- ID kelas -->
-                                <input type="hidden" name="kelas_id" value="<?= htmlspecialchars($kelas_id) ?>">
-
-                                <input type="hidden" name="mapel_id" value="<?= $mapel_id ?>">
-
-                                <!-- Tanggal absensi -->
-                                <input type="hidden" name="tanggal" value="<?= $today ?>">
-
-
-                                <div class="card">
-
-                                    <div class="card-header">
-
-
-                                        <h4 class="card-title">Absensi Siswa</h4>
-                                        <span class="text-muted">
-                                            (<?= date('d-m-Y') ?>)
-                                        </span>
-                                    </div>
-
-                                    <div class="card-body">
-
-                                        <?php if (mysqli_num_rows($data_siswa) === 0) : ?>
-
-                                        <div class="alert alert-warning">
-                                            Belum ada siswa pada kelas ini.
-                                        </div>
-
-                                        <?php else : ?>
+                            <!-- Tabel Form Input Nilai Siswa -->
+                            <?php if (!empty($kelas_id) && !empty($mapel_id) && !empty($jenis_ujian)) : ?>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Input Nilai <strong><?= $jenis_ujian ?></strong></h5>
+                                </div>
+                                <div class="card-body">
+                                    <form action="simpan_nilai.php" method="POST">
+                                        <input type="hidden" name="guru_id" value="<?= $guru_id ?>">
+                                        <input type="hidden" name="kelas_id" value="<?= $kelas_id ?>">
+                                        <input type="hidden" name="mapel_id" value="<?= $mapel_id ?>">
+                                        <input type="hidden" name="jenis_ujian" value="<?= $jenis_ujian ?>">
 
                                         <div class="table-responsive">
-
                                             <table id="basic-datatables"
                                                 class="display table table-striped table-hover">
-
                                                 <thead>
-
                                                     <tr>
-                                                        <th width="15%">NISN</th>
-                                                        <th width="25%">Nama Siswa</th>
-                                                        <th width="35%">Status Kehadiran</th>
-                                                        <th width="25%">Keterangan</th>
+                                                        <th style="width: 15%;">NISN</th>
+                                                        <th>Nama Siswa</th>
+                                                        <th style="width: 25%;">Nilai (0 - 100)</th>
                                                     </tr>
-
                                                 </thead>
-
                                                 <tbody>
-
-                                                    <?php while ($s = mysqli_fetch_assoc($data_siswa)) : ?>
-
+                                                    <?php if (mysqli_num_rows($siswa_list) > 0) : ?>
+                                                    <?php while ($s = mysqli_fetch_assoc($siswa_list)) : ?>
                                                     <tr>
-
+                                                        <td><?= htmlspecialchars($s['nisn']) ?></td>
+                                                        <td><?= htmlspecialchars($s['nama_lengkap']) ?></td>
                                                         <td>
-                                                            <?= htmlspecialchars($s['nisn']) ?>
+                                                            <input type="number" name="nilai[<?= $s['siswa_id'] ?>]"
+                                                                value="<?= $s['nilai'] !== NULL ? $s['nilai'] : '' ?>"
+                                                                class="form-control" min="0" max="100"
+                                                                placeholder="Nilai..." required>
                                                         </td>
-
-                                                        <td>
-                                                            <?= htmlspecialchars($s['nama_lengkap']) ?>
-                                                        </td>
-
-                                                        <td>
-
-                                                            <div class="form-check form-check-inline">
-
-                                                                <input class="form-check-input" type="radio"
-                                                                    name="absensi[<?= $s['id'] ?>]" value="Hadir"
-                                                                    checked>
-
-                                                                <label class="form-check-label">
-                                                                    Hadir
-                                                                </label>
-
-                                                            </div>
-
-
-                                                            <div class="form-check form-check-inline">
-
-                                                                <input class="form-check-input" type="radio"
-                                                                    name="absensi[<?= $s['id'] ?>]" value="Izin">
-
-                                                                <label class="form-check-label">
-                                                                    Izin
-                                                                </label>
-
-                                                            </div>
-
-
-                                                            <div class="form-check form-check-inline">
-
-                                                                <input class="form-check-input" type="radio"
-                                                                    name="absensi[<?= $s['id'] ?>]" value="Sakit">
-
-                                                                <label class="form-check-label">
-                                                                    Sakit
-                                                                </label>
-
-                                                            </div>
-
-
-                                                            <div class="form-check form-check-inline">
-
-                                                                <input class="form-check-input" type="radio"
-                                                                    name="absensi[<?= $s['id'] ?>]" value="Alfa">
-
-                                                                <label class="form-check-label">
-                                                                    Alfa
-                                                                </label>
-
-                                                            </div>
-
-                                                        </td>
-
-
-                                                        <td>
-
-                                                            <input type="text" name="keterangan[<?= $s['id'] ?>]"
-                                                                class="form-control form-control-sm"
-                                                                placeholder="Catatan (Opsional)">
-
-                                                        </td>
-
                                                     </tr>
-
                                                     <?php endwhile; ?>
-
+                                                    <?php else : ?>
+                                                    <tr>
+                                                        <td colspan="3" class="text-center text-muted">Tidak ada siswa
+                                                            ditemukan
+                                                            di
+                                                            kelas
+                                                            ini.</td>
+                                                    </tr>
+                                                    <?php endif; ?>
                                                 </tbody>
-
                                             </table>
-
                                         </div>
-
-
+                                        <?php if (mysqli_num_rows($siswa_list) > 0) : ?>
                                         <button type="submit" name="simpan" class="btn btn-success mt-3">
-                                            <i class="fa fa-save"></i>
-                                            Simpan Absensi
+                                            <i class="fa fa-save"></i> Simpan Semua Nilai
                                         </button>
-
                                         <?php endif; ?>
-
-                                    </div>
-
+                                    </form>
                                 </div>
-
-                            </form>
-
+                            </div>
                             <?php endif; ?>
 
                         </div>
@@ -560,21 +397,12 @@ $data_mapel = mysqli_query(
             </footer>
         </div>
     </div>
-
     <script src="../../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../../assets/js/core/popper.min.js"></script>
     <script src="../../../assets/js/core/bootstrap.min.js"></script>
-
-    <!-- jQuery Scrollbar -->
-    <script src="../../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-    <!-- Datatables -->
     <script src="../../../assets/js/plugin/datatables/datatables.min.js"></script>
-
-    <!-- Sweet Alert -->
     <script src="../../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
-    <!-- Kaiadmin JS -->
     <script src="../../../assets/js/kaiadmin.min.js"></script>
-
 </body>
 
 </html>

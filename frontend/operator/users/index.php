@@ -406,12 +406,21 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                             </div>
                             <div class="mb-3">
                                 <label>Role</label>
-                                <select name="role" class="form-select form-control-sm" required>
+                                <select name="role" id="role" class="form-select form-control-sm" required>
                                     <option value="">-- Pilih --</option>
                                     <option value="siswa">Siswa</option>
                                     <option value="orang_tua">Orang Tua Siswa</option>
                                     <option value="kepsek">Kepala Sekolah</option>
                                 </select>
+                            </div>
+
+                            <div class="mb-3" id="nisnContainer" style="display: none;">
+                                <label>NISN Anak</label>
+                                <input type="text" name="nisn_anak" id="nisn_anak" class="form-control form-control-sm"
+                                    placeholder="Masukkan NISN anak">
+                                <small class="text-muted">
+                                    Masukkan NISN siswa yang akan terhubung dengan akun orang tua.
+                                </small>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -508,6 +517,24 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
     </script>
     <?php unset($_SESSION['swal']);
     endif; ?>
+
+    <script>
+    document.getElementById('role').addEventListener('change', function() {
+
+        const nisnContainer = document.getElementById('nisnContainer');
+        const nisnInput = document.getElementById('nisn_anak');
+
+        if (this.value === 'orang_tua') {
+            nisnContainer.style.display = 'block';
+            nisnInput.required = true;
+        } else {
+            nisnContainer.style.display = 'none';
+            nisnInput.required = false;
+            nisnInput.value = '';
+        }
+
+    });
+    </script>
 </body>
 
 </html>
