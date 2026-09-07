@@ -53,6 +53,30 @@ $sudah_absen = (int) ($d_sudah_absen['total'] ?? 0);
 // 3. Jumlah guru yang belum absensi
 $belum_absen = max(0, $total_guru - $sudah_absen);
 
+$q_belum_absen = mysqli_query($conn, "
+    SELECT 
+        guru.id AS guru_id,
+        guru.nama_guru,
+        guru.nip,
+        mapel.nama_mapel,
+        kelas.nama_kelas,
+        jadwal.jam_masuk,
+        jadwal.jam_keluar
+    FROM jadwal
+    INNER JOIN guru 
+        ON guru.id = jadwal.guru_id
+    INNER JOIN mapel 
+        ON mapel.id = jadwal.mapel_id
+    INNER JOIN kelas 
+        ON kelas.id = jadwal.kelas_id
+    LEFT JOIN absensi_guru 
+        ON absensi_guru.guru_id = guru.id
+        AND absensi_guru.tanggal = '$today'
+    WHERE jadwal.hari = '$hari_ini'
+      AND absensi_guru.id IS NULL
+    ORDER BY jadwal.jam_masuk ASC, guru.nama_guru ASC
+");
+
 $q_users = mysqli_query($conn, "
     SELECT COUNT(id) AS total
     FROM users
@@ -258,71 +282,13 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                     <div class="container-fluid">
 
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
-                                    aria-expanded="false" aria-haspopup="true">
-                                    <i class="fa fa-search"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-search animated fadeIn">
-                                    <form class="navbar-left navbar-form nav-search">
-                                        <div class="input-group">
-                                            <input type="text" placeholder="Search ..." class="form-control" />
-                                        </div>
-                                    </form>
-                                </ul>
-                            </li>
-
-                            <li class="nav-item topbar-icon dropdown hidden-caret">
-                                <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                    <i class="fas fa-layer-group"></i>
-                                </a>
-                                <div class="dropdown-menu quick-actions animated fadeIn">
-                                    <div class="quick-actions-header">
-                                        <span class="title mb-1">Quick Actions</span>
-                                        <span class="subtitle op-7">Shortcuts</span>
-                                    </div>
-                                    <div class="quick-actions-scroll scrollbar-outer">
-                                        <div class="quick-actions-items">
-                                            <div class="row m-0">
-                                                <a class="col-6 col-md-4 p-0" href="#" id="openCalendar">
-
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-danger rounded-circle">
-                                                            <i class="far fa-calendar-alt"></i>
-                                                        </div>
-                                                        <span class="text">Calendar</span>
-                                                    </div>
-                                                </a>
-                                                <a class="col-6 col-md-4 p-0" href="#" id="openMaps">
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-warning rounded-circle">
-                                                            <i class="fas fa-map"></i>
-                                                        </div>
-                                                        <span class="text">Maps</span>
-                                                    </div>
-                                                </a>
-                                                <a class="col-6 col-md-4 p-0"
-                                                    href="https://wa.me/62823?text=Halo%20Admin,%20saya%20ingin%20bertanya%20mengenai%20pendaftaran."
-                                                    target="_blank">
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-success rounded-circle">
-                                                            <i class="fab fa-whatsapp"></i>
-                                                        </div>
-                                                        <span class="text">WhatsApp</span>
-                                                    </div>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-
 
                             <li class="nav-item topbar-user dropdown hidden-caret">
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                     aria-expanded="false">
                                     <div class="avatar-sm">
-                                        <img src="../../assets/img/user/" alt="..." class="avatar-img rounded-circle" />
+                                        <img src="../../assets/img/cs admin.png" alt="..."
+                                            class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
                                         <span class="fw-bold"><?= $_SESSION['username']; ?></span>
@@ -333,16 +299,12 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                                         <li>
                                             <div class="user-box">
                                                 <div class="avatar-lg">
-                                                    <img src="                                        
-                                                        ../../assets/img/user/" alt="..." class="avatar-img rounded" />
+                                                    <img src="../../assets/img/cs admin.png" alt="image profile"
+                                                        class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
                                                     <h4><?= $_SESSION['username']; ?></h4>
                                                     <p class="text-muted"><?= $_SESSION['email']; ?></p>
-
-                                                    <a href="../../profile.php"
-                                                        class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
                                                 </div>
                                             </div>
                                         </li>
@@ -427,7 +389,7 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                                         </div>
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
-                                                <p class="card-category">Guru Sudah Absensi</p>
+                                                <p class="card-category">Absensi Guru</p>
                                                 <h4 class="card-title">
                                                     <?= $sudah_absen ?>
                                                 </h4>
@@ -449,12 +411,85 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                                         </div>
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
-                                                <p class="card-category">Guru Belum Absensi</p>
+                                                <p class="card-category">Belum Absensi</p>
                                                 <h4 class="card-title">
                                                     <?= $belum_absen ?>
                                                 </h4>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 card-title> Guru Belum Absensi Hari Ini</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Guru</th>
+                                                    <th>NIP</th>
+                                                    <th>Mata Pelajaran</th>
+                                                    <th>Kelas</th>
+                                                    <th>Jam Mengajar</th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                <?php if (mysqli_num_rows($q_belum_absen) > 0): ?>
+
+                                                <?php $no = 1; ?>
+
+                                                <?php while ($row = mysqli_fetch_assoc($q_belum_absen)): ?>
+
+                                                <tr>
+                                                    <td><?= $no++ ?></td>
+
+                                                    <td>
+                                                        <?= htmlspecialchars($row['nama_guru']) ?>
+                                                    </td>
+
+                                                    <td>
+                                                        <?= htmlspecialchars($row['nip']) ?>
+                                                    </td>
+
+                                                    <td>
+                                                        <?= htmlspecialchars($row['nama_mapel']) ?>
+                                                    </td>
+
+                                                    <td>
+                                                        <?= htmlspecialchars($row['nama_kelas']) ?>
+                                                    </td>
+
+                                                    <td>
+                                                        <?= date('H:i', strtotime($row['jam_masuk'])) ?>
+                                                        -
+                                                        <?= date('H:i', strtotime($row['jam_keluar'])) ?>
+                                                    </td>
+                                                </tr>
+
+                                                <?php endwhile; ?>
+
+                                                <?php else: ?>
+
+                                                <tr>
+                                                    <td colspan="6" class="text-center">
+                                                        <i class="fas fa-check-circle text-success"></i>
+                                                        Semua guru sudah melakukan absensi.
+                                                    </td>
+                                                </tr>
+
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -476,10 +511,9 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                 </div>
             </footer>
         </div>
-
-
-        <!-- End Custom template -->
     </div>
+
+
     <div class="modal fade" id="calendarModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -494,23 +528,6 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
         </div>
     </div>
 
-    <div class="modal fade" id="mapsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Lokasi ICT Boarding School Pakenjeng</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.0490064280293!2d107.63090179999999!3d-7.459830900000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e66210076a60459%3A0x6a5343201d23b2c1!2sICT%20BOARDING%20SCHOOL!5e0!3m2!1sid!2sid!4v1767444462801!5m2!1sid!2sid"
-                        width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy">
-                    </iframe>
-
-                </div>
-            </div>
-        </div>
-    </div>
     <!--   Core JS Files   -->
     <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../assets/js/core/popper.min.js"></script>
@@ -543,8 +560,6 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
 
     <!-- Kaiadmin JS -->
     <script src="../../assets/js/kaiadmin.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
 </body>
 

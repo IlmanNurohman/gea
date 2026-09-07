@@ -54,8 +54,9 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="../index.html" class="logo">
-                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                    <a href="" class="logo">
+                        <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -168,8 +169,9 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                 <div class="main-header-logo">
                     <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
-                        <a href="../dashboard_superadmin.php" class="logo">
-                            <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                        <a href="" class="logo">
+                            <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
+                                height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -190,19 +192,6 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                     <div class="container-fluid">
 
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
-                                    aria-expanded="false" aria-haspopup="true">
-                                    <i class="fa fa-search"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-search animated fadeIn">
-                                    <form class="navbar-left navbar-form nav-search">
-                                        <div class="input-group">
-                                            <input type="text" placeholder="Search ..." class="form-control" />
-                                        </div>
-                                    </form>
-                                </ul>
-                            </li>
 
                             <li class="nav-item topbar-user dropdown hidden-caret">
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
@@ -213,7 +202,8 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                                     </div>
                                     <span class="profile-username">
 
-                                        <span class="fw-bold">Super Admin</span>
+                                        <span class="fw-bold">
+                                            <?= $_SESSION ['username'] ?></span>
                                     </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-user animated fadeIn">
@@ -225,16 +215,15 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                                                         class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
-                                                    <h4>Super Admin</h4>
-                                                    <p class="text-muted">superadmin@gmail.com</p>
-                                                    <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
+                                                    <h4><?= $_SESSION ['username'] ?></h4>
+                                                    <p class="text-muted"><?= $_SESSION ['email'] ?></p>
                                                 </div>
                                             </div>
                                         </li>
                                         <li>
-                                            <div class="dropdown-divider"></div>
+                                            <div class="dropdown-divider">
 
+                                            </div>
                                             <a class="dropdown-item" href="../../../logout.php">Logout</a>
                                         </li>
                                     </div>
