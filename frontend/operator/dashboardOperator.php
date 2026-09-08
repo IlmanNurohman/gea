@@ -166,7 +166,7 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
                         <li class="nav-item">
-                            <a href="../dashboard_superadmin.php" class="collapsed" aria-expanded="false">
+                            <a href="../dashboardOperator.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>
                             </a>
@@ -513,20 +513,6 @@ $siswa = (int) ($d_siswa['total'] ?? 0);
         </div>
     </div>
 
-
-    <div class="modal fade" id="calendarModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Kalender</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="calendar"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!--   Core JS Files   -->
     <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>

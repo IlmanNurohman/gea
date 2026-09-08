@@ -373,7 +373,7 @@
             </div>
             <div class="school-info">
                 <div class="school-name">Elearning</div>
-                <div class="school-sub">SMA EXAMPLE</div>
+                <div class="school-sub">SMK NASHIRUL HUDA BOJONGGAMBIR</div>
             </div>
         </div>
 

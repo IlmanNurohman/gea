@@ -274,20 +274,20 @@ function badgeStatusTugas(?int $id_kumpul, ?int $nilai): string
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="../index.html" class="logo">
-                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
-                    </a>
-                    <div class="nav-toggle">
-                        <button class="btn btn-toggle toggle-sidebar">
-                            <i class="gg-menu-right"></i>
+                    <a href="" class="logo">
+                        <img src="../../assets/img/logo.png" alt="navbar brand"
+                            style="height: 30px; margin-right: 10px;" />
+                        <div class="nav-toggle">
+                            <button class="btn btn-toggle toggle-sidebar">
+                                <i class="gg-menu-right"></i>
+                            </button>
+                            <button class="btn btn-toggle sidenav-toggler">
+                                <i class="gg-menu-left"></i>
+                            </button>
+                        </div>
+                        <button class="topbar-toggler more">
+                            <i class="gg-more-vertical-alt"></i>
                         </button>
-                        <button class="btn btn-toggle sidenav-toggler">
-                            <i class="gg-menu-left"></i>
-                        </button>
-                    </div>
-                    <button class="topbar-toggler more">
-                        <i class="gg-more-vertical-alt"></i>
-                    </button>
                 </div>
                 <!-- End Logo Header -->
             </div>
@@ -334,7 +334,7 @@ function badgeStatusTugas(?int $id_kumpul, ?int $nilai): string
                     <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
                         <a href="../dashboard_superadmin.php" class="logo">
-                            <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                            <img src="../../assets/img/logo.png" alt="navbar brand" class="navbar-brand" height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -355,30 +355,17 @@ function badgeStatusTugas(?int $id_kumpul, ?int $nilai): string
                     <div class="container-fluid">
 
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
-                                    aria-expanded="false" aria-haspopup="true">
-                                    <i class="fa fa-search"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-search animated fadeIn">
-                                    <form class="navbar-left navbar-form nav-search">
-                                        <div class="input-group">
-                                            <input type="text" placeholder="Search ..." class="form-control" />
-                                        </div>
-                                    </form>
-                                </ul>
-                            </li>
 
                             <li class="nav-item topbar-user dropdown hidden-caret">
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                     aria-expanded="false">
                                     <div class="avatar-sm">
-                                        <img src="../../../assets/img/cs admin.png" alt="..."
+                                        <img src="../../assets/img/cs admin.png" alt="..."
                                             class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
 
-                                        <span class="fw-bold">Super Admin</span>
+                                        <span class="fw-bold"><?= $_SESSION ['username'] ?></span>
                                     </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-user animated fadeIn">
@@ -386,21 +373,20 @@ function badgeStatusTugas(?int $id_kumpul, ?int $nilai): string
                                         <li>
                                             <div class="user-box">
                                                 <div class="avatar-lg">
-                                                    <img src="../../../assets/img/cs admin.png" alt="image profile"
+                                                    <img src="../../assets/img/cs admin.png" alt="image profile"
                                                         class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
-                                                    <h4>Super Admin</h4>
-                                                    <p class="text-muted">superadmin@gmail.com</p>
-                                                    <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
+                                                    <h4><?= $_SESSION ['username'] ?></h4>
+                                                    <p class="text-muted"><?= $_SESSION ['email'] ?></p>
+
                                                 </div>
                                             </div>
                                         </li>
                                         <li>
                                             <div class="dropdown-divider"></div>
 
-                                            <a class="dropdown-item" href="../../../logout.php">Logout</a>
+                                            <a class="dropdown-item" href="../../logout.php">Logout</a>
                                         </li>
                                     </div>
                                 </ul>
@@ -711,6 +697,39 @@ function badgeStatusTugas(?int $id_kumpul, ?int $nilai): string
             </footer>
         </div>
     </div>
+
+    <!--   Core JS Files   -->
+    <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="../../assets/js/core/popper.min.js"></script>
+    <script src="../../assets/js/core/bootstrap.min.js"></script>
+
+    <!-- jQuery Scrollbar -->
+    <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+
+    <!-- Chart JS -->
+    <script src="../../assets/js/plugin/chart.js/chart.min.js"></script>
+
+    <!-- jQuery Sparkline -->
+    <script src="../../assets/js/plugin/jquery.sparkline/jquery.sparkline.min.js"></script>
+
+    <!-- Chart Circle -->
+    <script src="../../assets/js/plugin/chart-circle/circles.min.js"></script>
+
+    <!-- Datatables -->
+    <script src="../../assets/js/plugin/datatables/datatables.min.js"></script>
+
+    <!-- Bootstrap Notify -->
+    <script src="../../assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+
+    <!-- jQuery Vector Maps -->
+    <script src="../../assets/js/plugin/jsvectormap/jsvectormap.min.js"></script>
+    <script src="../../assets/js/plugin/jsvectormap/world.js"></script>
+
+    <!-- Sweet Alert -->
+    <script src="../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
+
+    <!-- Kaiadmin JS -->
+    <script src="../../assets/js/kaiadmin.min.js"></script>
 
 </body>
 
