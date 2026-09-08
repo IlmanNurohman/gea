@@ -63,7 +63,8 @@ $data_nilai = mysqli_query($conn, $query_nilai);
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
                     <a href="" class="logo">
-                        <img src="../../assets/img/logo.png" alt="navbar brand" class="navbar-brand" height="20" />
+                        <img src="../../../assets/img/logo.png" alt="navbar brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -137,8 +138,9 @@ $data_nilai = mysqli_query($conn, $query_nilai);
             <div class="main-header">
                 <div class="main-header-logo">
                     <div class="logo-header" data-background-color="dark">
-                        <a href="../dashboardSiswa.php" class="logo">
-                            <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                        <a href="" class="logo">
+                            <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
+                                height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -164,11 +166,23 @@ $data_nilai = mysqli_query($conn, $query_nilai);
                                             class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
-                                        <span class="fw-bold"></span>
+                                        <span class="fw-bold"><?= $_SESSION ['username']  ?></span>
                                     </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-user animated fadeIn">
                                     <div class="dropdown-user-scroll scrollbar-outer">
+                                        <li>
+                                            <div class="user-box">
+                                                <div class="avatar-lg">
+                                                    <img src="../../../assets/img/cs admin.png" alt="image profile"
+                                                        class="avatar-img rounded" />
+                                                </div>
+                                                <div class="u-text">
+                                                    <h4><?= $_SESSION ['username'] ?></h4>
+                                                    <p class="text-muted"><?= $_SESSION ['email'] ?></p>
+                                                </div>
+                                            </div>
+                                        </li>
                                         <li>
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item" href="../../../logout.php">Logout</a>

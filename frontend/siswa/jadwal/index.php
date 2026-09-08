@@ -6,9 +6,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'siswa') {
     die('Akses ditolak');
 }
 
-// Session hanya menyimpan user_id (id dari tabel users), bukan kelas_id.
-// ASUMSI: tabel siswa memiliki kolom user_id yang berelasi ke tabel users.
-// Jika nama kolomnya berbeda (mis. id_user), sesuaikan query di bawah ini.
 if (!isset($_SESSION['user_id'])) {
     die('Sesi siswa tidak valid. Silakan login ulang.');
 }
@@ -83,7 +80,8 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
                     <a href="" class="logo">
-                        <img src="../../assets/img/logo.png" alt="navbar brand" class="navbar-brand" height="20" />
+                        <img src="../../../assets/img/logo.png" alt="navbar brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -159,8 +157,9 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
             <div class="main-header">
                 <div class="main-header-logo">
                     <div class="logo-header" data-background-color="dark">
-                        <a href="../dashboardSiswa.php" class="logo">
-                            <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                        <a href="" class="logo">
+                            <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
+                                height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -186,11 +185,23 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
                                             class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
-                                        <span class="fw-bold"><?= htmlspecialchars($nama_kelas) ?></span>
+                                        <span class="fw-bold"><?= $_SESSION ['username']?></span>
                                     </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-user animated fadeIn">
                                     <div class="dropdown-user-scroll scrollbar-outer">
+                                        <li>
+                                            <div class="user-box">
+                                                <div class="avatar-lg">
+                                                    <img src="../../../assets/img/cs admin.png" alt="image profile"
+                                                        class="avatar-img rounded" />
+                                                </div>
+                                                <div class="u-text">
+                                                    <h4><?= $_SESSION ['username'] ?></h4>
+                                                    <p class="text-muted"><?= $_SESSION ['email'] ?></p>
+                                                </div>
+                                            </div>
+                                        </li>
                                         <li>
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item" href="../../../logout.php">Logout</a>

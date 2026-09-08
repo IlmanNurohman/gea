@@ -7,11 +7,119 @@ if ($_SESSION['role'] != 'siswa') {
     exit;
 }
 
-$id = $_SESSION['user_id'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 
-if (!$id) {
+if (!$user_id) {
     die('User belum login');
 }
+
+// AMBIL DATA SISWA 
+$stmt =
+        mysqli_prepare($conn, "SELECT id, kelas_id, nama_lengkap FROM siswa WHERE user_id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $user_id);
+        mysqli_stmt_execute($stmt);
+        
+$result = mysqli_stmt_get_result($stmt);
+$siswa =
+        mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        if (!$siswa) {
+            die('Data siswa tidak ditemukan');
+        }
+        
+$siswa_id = (int) $siswa['id'];
+$kelas_id = (int) $siswa['kelas_id'];
+
+//  TOTAL TUGAS 
+$stmt =
+        mysqli_prepare($conn, "SELECT COUNT(*) AS total FROM tugas WHERE kelas_id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $kelas_id);
+        mysqli_stmt_execute($stmt);
+        
+$result = mysqli_stmt_get_result($stmt);
+$data = mysqli_fetch_assoc($result);
+$total_tugas = (int) $data['total'];
+mysqli_stmt_close($stmt);
+
+// TUGAS SUDAH DIKERJAKAN 
+$stmt =
+        mysqli_prepare($conn, "SELECT COUNT(DISTINCT t.id) AS total FROM tugas t INNER JOIN pengumpulan_tugas pt ON pt.tugas_id = t.id WHERE t.kelas_id = ? AND pt.siswa_id = ?");
+        mysqli_stmt_bind_param($stmt, "ii", $kelas_id, $siswa_id);
+        mysqli_stmt_execute($stmt);
+$result =
+        mysqli_stmt_get_result($stmt);
+$data = mysqli_fetch_assoc($result);
+$sudah_dikerjakan = (int) $data['total'];
+mysqli_stmt_close($stmt);
+
+//  TUGAS BELUM DIKERJAKAN 
+$belum_dikerjakan = $total_tugas - $sudah_dikerjakan;
+
+// JADWAL HARI INI 
+$hari_map = [
+    'Sunday'    => 'Minggu',
+    'Monday'    => 'Senin',
+    'Tuesday'   => 'Selasa',
+    'Wednesday' => 'Rabu',
+    'Thursday'  => 'Kamis',
+    'Friday'    => 'Jumat',
+    'Saturday'  => 'Sabtu',
+];
+$hari_ini = $hari_map[date('l')];
+
+$stmt = mysqli_prepare(
+    $conn,
+    "SELECT j.jam_masuk, j.jam_keluar, m.nama_mapel
+     FROM jadwal j
+     INNER JOIN mapel m ON m.id = j.mapel_id
+     WHERE j.kelas_id = ? AND j.hari = ?
+     ORDER BY j.jam_masuk ASC"
+);
+mysqli_stmt_bind_param($stmt, "is", $kelas_id, $hari_ini);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$jadwal_hari_ini = mysqli_fetch_all($result, MYSQLI_ASSOC);
+mysqli_stmt_close($stmt);
+
+// TUGAS TERBARU 
+$stmt = mysqli_prepare(
+    $conn,
+    "SELECT t.id, t.judul, t.deadline, m.nama_mapel,
+        EXISTS (
+            SELECT 1 FROM pengumpulan_tugas pt
+            WHERE pt.tugas_id = t.id AND pt.siswa_id = ?
+        ) AS sudah_kumpul
+     FROM tugas t
+     INNER JOIN mapel m ON m.id = t.mapel_id
+     WHERE t.kelas_id = ?
+     ORDER BY t.deadline ASC
+     LIMIT 5"
+);
+mysqli_stmt_bind_param($stmt, "ii", $siswa_id, $kelas_id);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$daftar_tugas = mysqli_fetch_all($result, MYSQLI_ASSOC);
+mysqli_stmt_close($stmt);
+
+// Helper: format deadline jadi teks relatif (Besok, 2 hari lagi, Terlambat, dst)
+function formatDeadline($deadline)
+{
+    $today = new DateTime('today');
+    $due   = new DateTime($deadline);
+    $diff  = (int) $today->diff($due)->format('%r%a'); // signed day diff
+
+    if ($diff < 0)  return '<span class="text-danger">Terlambat</span>';
+    if ($diff === 0) return '<span class="text-warning">Hari ini</span>';
+    if ($diff === 1) return 'Besok';
+    return $diff . ' hari lagi';
+}
+
+$pengumuman = mysqli_query(
+    $conn,
+    "SELECT pengumuman FROM pengumuman ORDER BY created_at DESC LIMIT 1"
+);
+
+$row = mysqli_fetch_assoc($pengumuman);
 
 ?>
 
@@ -58,13 +166,13 @@ if (!$id) {
 <body>
     <div class="wrapper">
         <!-- Sidebar -->
-        <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
                     <a href="" class="logo">
-                        <img src="../../assets/img/logo.png" alt="navbar brand" class="navbar-brand" height="20" />
+                        <img src="../../assets/img/logo.png" alt="navbar brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -142,9 +250,8 @@ if (!$id) {
                 <div class="main-header-logo">
                     <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
-                        <a href="index.html" class="logo">
-                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand"
-                                height="20" />
+                        <a href="" class="logo">
+                            <img src="../../assets/img/logo.png" alt="navbar brand" class="navbar-brand" height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -165,71 +272,13 @@ if (!$id) {
                     <div class="container-fluid">
 
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
-                                    aria-expanded="false" aria-haspopup="true">
-                                    <i class="fa fa-search"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-search animated fadeIn">
-                                    <form class="navbar-left navbar-form nav-search">
-                                        <div class="input-group">
-                                            <input type="text" placeholder="Search ..." class="form-control" />
-                                        </div>
-                                    </form>
-                                </ul>
-                            </li>
-
-                            <li class="nav-item topbar-icon dropdown hidden-caret">
-                                <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                    <i class="fas fa-layer-group"></i>
-                                </a>
-                                <div class="dropdown-menu quick-actions animated fadeIn">
-                                    <div class="quick-actions-header">
-                                        <span class="title mb-1">Quick Actions</span>
-                                        <span class="subtitle op-7">Shortcuts</span>
-                                    </div>
-                                    <div class="quick-actions-scroll scrollbar-outer">
-                                        <div class="quick-actions-items">
-                                            <div class="row m-0">
-                                                <a class="col-6 col-md-4 p-0" href="#" id="openCalendar">
-
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-danger rounded-circle">
-                                                            <i class="far fa-calendar-alt"></i>
-                                                        </div>
-                                                        <span class="text">Calendar</span>
-                                                    </div>
-                                                </a>
-                                                <a class="col-6 col-md-4 p-0" href="#" id="openMaps">
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-warning rounded-circle">
-                                                            <i class="fas fa-map"></i>
-                                                        </div>
-                                                        <span class="text">Maps</span>
-                                                    </div>
-                                                </a>
-                                                <a class="col-6 col-md-4 p-0"
-                                                    href="https://wa.me/62823?text=Halo%20Admin,%20saya%20ingin%20bertanya%20mengenai%20pendaftaran."
-                                                    target="_blank">
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-success rounded-circle">
-                                                            <i class="fab fa-whatsapp"></i>
-                                                        </div>
-                                                        <span class="text">WhatsApp</span>
-                                                    </div>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-
 
                             <li class="nav-item topbar-user dropdown hidden-caret">
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                     aria-expanded="false">
                                     <div class="avatar-sm">
-                                        <img src="../../assets/img/user/" alt="..." class="avatar-img rounded-circle" />
+                                        <img src="../../assets/img/cs admin.png" alt="..."
+                                            class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
                                         <span class="fw-bold"><?= $_SESSION['username']; ?></span>
@@ -240,16 +289,13 @@ if (!$id) {
                                         <li>
                                             <div class="user-box">
                                                 <div class="avatar-lg">
-                                                    <img src="                                        
-                                                        ../../assets/img/user/" alt="..." class="avatar-img rounded" />
+                                                    <img src="../../assets/img/cs admin.png" alt="..."
+                                                        class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
                                                     <h4><?= $_SESSION['username']; ?></h4>
                                                     <p class="text-muted"><?= $_SESSION['email']; ?></p>
 
-                                                    <a href="../../profile.php"
-                                                        class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
                                                 </div>
                                             </div>
                                         </li>
@@ -279,20 +325,23 @@ if (!$id) {
 
                     </div>
                     <div class="row">
+
+                        <!-- Total Tugas -->
                         <div class="col-sm-6 col-md-4">
                             <div class="card card-stats card-round">
                                 <div class="card-body">
                                     <div class="row align-items-center">
                                         <div class="col-icon">
                                             <div class="icon-big text-center icon-primary bubble-shadow-small">
-                                                <i class="fas fa-users"></i>
+                                                <i class="fas fa-tasks"></i>
                                             </div>
                                         </div>
+
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
                                                 <p class="card-category">Total Tugas</p>
                                                 <h4 class="card-title">
-
+                                                    <?= $total_tugas ?>
                                                 </h4>
                                             </div>
                                         </div>
@@ -301,20 +350,22 @@ if (!$id) {
                             </div>
                         </div>
 
+                        <!-- Belum Dikerjakan -->
                         <div class="col-sm-6 col-md-4">
                             <div class="card card-stats card-round">
                                 <div class="card-body">
                                     <div class="row align-items-center">
                                         <div class="col-icon">
                                             <div class="icon-big text-center icon-info bubble-shadow-small">
-                                                <i class="fas fa-user-graduate"></i>
+                                                <i class="fas fa-clipboard-list"></i>
                                             </div>
                                         </div>
+
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
                                                 <p class="card-category">Belum Dikerjakan</p>
                                                 <h4 class="card-title">
-
+                                                    <?= $belum_dikerjakan ?>
                                                 </h4>
                                             </div>
                                         </div>
@@ -323,24 +374,123 @@ if (!$id) {
                             </div>
                         </div>
 
+                        <!-- Sudah Dikerjakan -->
                         <div class="col-sm-6 col-md-4">
                             <div class="card card-stats card-round">
                                 <div class="card-body">
                                     <div class="row align-items-center">
                                         <div class="col-icon">
                                             <div class="icon-big text-center icon-success bubble-shadow-small">
-                                                <i class="fas fa-user-check"></i>
+                                                <i class="fas fa-check-circle"></i>
                                             </div>
                                         </div>
+
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
                                                 <p class="card-category">Sudah Dikerjakan</p>
                                                 <h4 class="card-title">
-
+                                                    <?= $sudah_dikerjakan ?>
                                                 </h4>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Tugas Terbaru -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-book me-2"></i>Tugas Terbaru
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <?php if (empty($daftar_tugas)): ?>
+                                    <p class="text-muted mb-0">Belum ada tugas.</p>
+                                    <?php else: ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Judul Tugas</th>
+                                                    <th>Mapel</th>
+                                                    <th>Batas Waktu</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($daftar_tugas as $t): ?>
+                                                <tr>
+                                                    <td><?= htmlspecialchars($t['judul']) ?></td>
+                                                    <td><?= htmlspecialchars($t['nama_mapel']) ?></td>
+                                                    <td><?= formatDeadline($t['deadline']) ?></td>
+                                                    <td>
+                                                        <?php if ($t['sudah_kumpul']): ?>
+                                                        <span class="badge bg-success">Sudah Dikumpulkan</span>
+                                                        <?php else: ?>
+                                                        <span class="badge bg-warning text-dark">Belum
+                                                            Dikumpulkan</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="text-end mt-2">
+                                        <a href="tugas/index.php" class="btn btn-sm btn-primary">Lihat Semua Tugas</a>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jadwal Hari Ini & Pengumuman -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-calendar-day me-2"></i>Jadwal Hari Ini (<?= $hari_ini ?>)
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <?php if (empty($jadwal_hari_ini)): ?>
+                                    <p class="text-muted mb-0">Tidak ada jadwal pelajaran hari ini.</p>
+                                    <?php else: ?>
+                                    <ul class="list-group list-group-flush">
+                                        <?php foreach ($jadwal_hari_ini as $j): ?>
+                                        <li
+                                            class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <span>
+                                                <i class="fas fa-clock text-muted me-2"></i>
+                                                <?= substr($j['jam_masuk'], 0, 5) ?> -
+                                                <?= substr($j['jam_keluar'], 0, 5) ?>
+                                            </span>
+                                            <span class="fw-bold"><?= htmlspecialchars($j['nama_mapel']) ?></span>
+                                        </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Pengumuman</h4>
+                                </div>
+                                <div class="card-body">
+                                    <p>
+                                        <?= htmlspecialchars($row['pengumuman'] ?? 'Belum ada pengumuman.') ?>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -429,7 +579,6 @@ if (!$id) {
     <!-- Kaiadmin JS -->
     <script src="../../assets/js/kaiadmin.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
 </body>
 
