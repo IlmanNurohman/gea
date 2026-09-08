@@ -58,7 +58,6 @@ if (!$id) {
 <body>
     <div class="wrapper">
         <!-- Sidebar -->
-        <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
             <div class="sidebar-logo">
                 <!-- Logo Header -->
@@ -173,7 +172,6 @@ if (!$id) {
                 </div>
             </div>
         </div>
-        <!-- End Sidebar -->
         <!-- End Sidebar -->
 
         <div class="main-panel">
