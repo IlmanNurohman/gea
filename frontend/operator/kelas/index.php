@@ -6,7 +6,19 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'operator') {
     die('Akses ditolak');
 }
 
-$data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM kelas ORDER BY created_at DESC");
+$data = mysqli_query($conn, "
+    SELECT 
+        k.id,
+        k.nama_kelas,
+        k.guru_id,
+        g.nama_guru,
+        k.created_at
+    FROM kelas k
+    LEFT JOIN guru g ON g.id = k.guru_id
+    ORDER BY k.created_at DESC
+");
+$data_guru = mysqli_query($conn, "SELECT id, nama_guru FROM guru ORDER BY nama_guru ASC");
+$guru_options = mysqli_fetch_all($data_guru, MYSQLI_ASSOC);
 ?>
 
 
@@ -55,7 +67,7 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
                     <a href="../index.html" class="logo">
-                        <a href="../index.html" class="logo">
+                        <a href="" class="logo">
                             <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
                                 style="height: 30px; margin-right: 10px;" />
                         </a>
@@ -290,7 +302,7 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                                                 <tr>
                                                     <td><?= $no++ ?></td>
                                                     <td><?= $u['nama_kelas'] ?></td>
-                                                    <td><?= strtoupper($u['wali_kelas']) ?></td>
+                                                    <td><?= htmlspecialchars($u['nama_guru'] ?? '-') ?></td>
                                                     <td><?= $u['created_at'] ?></td>
                                                     <td>
                                                         <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
@@ -324,10 +336,15 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                                                                     </div>
                                                                     <div class="mb-3">
                                                                         <label>Wali Kelas</label>
-                                                                        <input type="text" name="wali_kelas"
-                                                                            value="<?= $u['wali_kelas'] ?>"
-                                                                            class="form-control form-control-sm"
+                                                                        <select name="guru_id" class="form-select"
                                                                             required>
+                                                                            <?php foreach ($guru_options as $g) : ?>
+                                                                            <option value="<?= $g['id'] ?>"
+                                                                                <?= $u['guru_id'] == $g['id'] ? 'selected' : '' ?>>
+                                                                                <?= htmlspecialchars($g['nama_guru']) ?>
+                                                                            </option>
+                                                                            <?php endforeach; ?>
+                                                                        </select>
                                                                     </div>
                                                                 </div>
                                                                 <div class="modal-footer">
@@ -378,7 +395,12 @@ $data = mysqli_query($conn, "SELECT id, nama_kelas, wali_kelas, created_at FROM 
                             </div>
                             <div class="mb-3">
                                 <label>Wali Kelas</label>
-                                <input type="text" name="wali_kelas" class="form-control form-control-sm" required>
+                                <select name="guru_id" class="form-select" required>
+                                    <option value="">-- Pilih Guru --</option>
+                                    <?php foreach ($guru_options as $g) : ?>
+                                    <option value="<?= $g['id'] ?>"><?= htmlspecialchars($g['nama_guru']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
 
                         </div>

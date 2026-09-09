@@ -79,8 +79,9 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="../index.html" class="logo">
-                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                    <a href="" class="logo">
+                        <img src="../../../assets/img/logo.png" alt="navbar brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -170,21 +171,6 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
                             </a>
                         </li>
 
-                        <li class="nav-section">
-                            <span class="sidebar-mini-icon">
-                                <i class="fa fa-ellipsis-h"></i>
-                            </span>
-                            <h4 class="text-section">Pengumuman</h4>
-                        </li>
-
-                        <!-- Pengumuman -->
-                        <li class="nav-item">
-                            <a href="../pengumuman/index.php">
-                                <i class="fas fa-bullhorn"></i>
-                                <p>Pengumuman</p>
-                            </a>
-                        </li>
-
                     </ul>
                 </div>
             </div>
@@ -195,8 +181,9 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
             <div class="main-header">
                 <div class="main-header-logo">
                     <div class="logo-header" data-background-color="dark">
-                        <a href="../dashboardGuru.php" class="logo">
-                            <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                        <a href="" class="logo">
+                            <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
+                                height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -218,7 +205,8 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                     aria-expanded="false">
                                     <div class="avatar-sm">
-                                        <img src="../../assets/img/user/" alt="..." class="avatar-img rounded-circle" />
+                                        <img src="../../../assets/img/cs admin.png" alt="..."
+                                            class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
                                         <span class="fw-bold"><?= $_SESSION['username']; ?></span>
@@ -229,16 +217,12 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
                                         <li>
                                             <div class="user-box">
                                                 <div class="avatar-lg">
-                                                    <img src="                                        
-                                                        ../../assets/img/user/" alt="..." class="avatar-img rounded" />
+                                                    <img src="../../../assets/img/cs admin.png" alt="..."
+                                                        class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
                                                     <h4><?= $_SESSION['username']; ?></h4>
                                                     <p class="text-muted"><?= $_SESSION['email']; ?></p>
-
-                                                    <a href="../../profile.php"
-                                                        class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
                                                 </div>
                                             </div>
                                         </li>

@@ -72,8 +72,9 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="../index.html" class="logo">
-                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                    <a href="" class="logo">
+                        <img src="../../../assets/img/logo.png" alt="navbar brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -162,22 +163,6 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
                                 <p>Absensi Mandiri</p>
                             </a>
                         </li>
-
-                        <li class="nav-section">
-                            <span class="sidebar-mini-icon">
-                                <i class="fa fa-ellipsis-h"></i>
-                            </span>
-                            <h4 class="text-section">Pengumuman</h4>
-                        </li>
-
-                        <!-- Pengumuman -->
-                        <li class="nav-item">
-                            <a href="../pengumuman/index.php">
-                                <i class="fas fa-bullhorn"></i>
-                                <p>Pengumuman</p>
-                            </a>
-                        </li>
-
                     </ul>
                 </div>
             </div>
@@ -189,8 +174,9 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
                 <div class="main-header-logo">
                     <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
-                        <a href="../dashboard_superadmin.php" class="logo">
-                            <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                        <a href="" class="logo">
+                            <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
+                                height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -211,19 +197,6 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
                     <div class="container-fluid">
 
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
-                                    aria-expanded="false" aria-haspopup="true">
-                                    <i class="fa fa-search"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-search animated fadeIn">
-                                    <form class="navbar-left navbar-form nav-search">
-                                        <div class="input-group">
-                                            <input type="text" placeholder="Search ..." class="form-control" />
-                                        </div>
-                                    </form>
-                                </ul>
-                            </li>
 
                             <li class="nav-item topbar-user dropdown hidden-caret">
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
@@ -234,7 +207,7 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
                                     </div>
                                     <span class="profile-username">
 
-                                        <span class="fw-bold">Super Admin</span>
+                                        <span class="fw-bold"><?= $_SESSION ['username'] ?></span>
                                     </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-user animated fadeIn">
@@ -246,10 +219,9 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
                                                         class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
-                                                    <h4>Super Admin</h4>
-                                                    <p class="text-muted">superadmin@gmail.com</p>
-                                                    <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
+                                                    <h4><?= $_SESSION ['username'] ?></h4>
+                                                    <p class="text-muted"><?= $_SESSION ['email'] ?></p>
+
                                                 </div>
                                             </div>
                                         </li>
@@ -269,24 +241,24 @@ $q_riwayat = mysqli_query($conn, "SELECT * FROM absensi_guru WHERE guru_id = '$g
             <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3">Users</h3>
+                        <h3 class="fw-bold mb-3">Absensi Mandiri</h3>
                         <ul class="breadcrumbs mb-3">
                             <li class="nav-home">
                                 <a href="#">
-                                    <i class="fas fa-users"></i>
+                                    <i class="fas fa-user-clock"></i>
                                 </a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Manajemen users</a>
+                                <a href="#">Manajemen Absensi Mandiri</a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Data Users</a>
+                                <a href="#">Data Absensi Mandiri</a>
                             </li>
                         </ul>
                     </div>

@@ -72,7 +72,8 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
                     <a href="../index.html" class="logo">
-                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                        <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">

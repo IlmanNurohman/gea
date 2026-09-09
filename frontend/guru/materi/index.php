@@ -62,8 +62,9 @@ $data_materi = mysqli_query($conn, $query_materi);
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="../index.html" class="logo">
-                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                    <a href="" class="logo">
+                        <img src="../../../assets/img/logo.png" alt="navbar brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -153,21 +154,6 @@ $data_materi = mysqli_query($conn, $query_materi);
                             </a>
                         </li>
 
-                        <li class="nav-section">
-                            <span class="sidebar-mini-icon">
-                                <i class="fa fa-ellipsis-h"></i>
-                            </span>
-                            <h4 class="text-section">Pengumuman</h4>
-                        </li>
-
-                        <!-- Pengumuman -->
-                        <li class="nav-item">
-                            <a href="../pengumuman/index.php">
-                                <i class="fas fa-bullhorn"></i>
-                                <p>Pengumuman</p>
-                            </a>
-                        </li>
-
                     </ul>
                 </div>
             </div>
@@ -178,7 +164,7 @@ $data_materi = mysqli_query($conn, $query_materi);
                     <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
                         <a href="" class="logo">
-                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand"
+                            <img src="../../../assets/img/logo.png" alt="navbar brand" class="navbar-brand"
                                 height="20" />
                         </a>
                         <div class="nav-toggle">
@@ -203,7 +189,8 @@ $data_materi = mysqli_query($conn, $query_materi);
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                     aria-expanded="false">
                                     <div class="avatar-sm">
-                                        <img src="../../assets/img/user/" alt="..." class="avatar-img rounded-circle" />
+                                        <img src="../../../assets/img/cs admin.png" alt="..."
+                                            class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
                                         <span class="fw-bold"><?= $_SESSION['username']; ?></span>
@@ -214,16 +201,12 @@ $data_materi = mysqli_query($conn, $query_materi);
                                         <li>
                                             <div class="user-box">
                                                 <div class="avatar-lg">
-                                                    <img src="                                        
-                                                        ../../assets/img/user/" alt="..." class="avatar-img rounded" />
+                                                    <img src="../../../assets/img/cs admin.png" alt="image profile"
+                                                        class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
                                                     <h4><?= $_SESSION['username']; ?></h4>
                                                     <p class="text-muted"><?= $_SESSION['email']; ?></p>
-
-                                                    <a href="../../profile.php"
-                                                        class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
                                                 </div>
                                             </div>
                                         </li>
@@ -242,24 +225,24 @@ $data_materi = mysqli_query($conn, $query_materi);
             <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3">Guru</h3>
+                        <h3 class="fw-bold mb-3">Materi</h3>
                         <ul class="breadcrumbs mb-3">
                             <li class="nav-home">
                                 <a href="#">
-                                    <i class="fas fa-chalkboard-teacher"></i>
+                                    <i class="fas fa-book-open"></i>
                                 </a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Manajemen Guru</a>
+                                <a href="#">Manajemen Materi</a>
                             </li>
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
                             <li class="nav-item">
-                                <a href="#">Data Guru</a>
+                                <a href="#">Data Materi</a>
                             </li>
                         </ul>
                     </div>

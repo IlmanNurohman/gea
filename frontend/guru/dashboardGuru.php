@@ -7,11 +7,125 @@ if ($_SESSION['role'] != 'guru') {
     exit;
 }
 
-$id = $_SESSION['user_id'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 
-if (!$id) {
+if (!$user_id) {
     die('User belum login');
 }
+
+// ===================================================== // AMBIL DATA GURU // =====================================================
+$stmt = mysqli_prepare($conn, "SELECT id, nama_guru FROM guru WHERE user_id = ?");
+mysqli_stmt_bind_param($stmt, "i", $user_id);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$guru   = mysqli_fetch_assoc($result);
+mysqli_stmt_close($stmt);
+
+if (!$guru) {
+    die('Data guru tidak ditemukan');
+}
+$guru_id = (int) $guru['id'];
+
+$today = date('Y-m-d');
+
+// Nama hari dalam bahasa Indonesia
+$hari_map = [
+    'Sunday'    => 'Minggu',
+    'Monday'    => 'Senin',
+    'Tuesday'   => 'Selasa',
+    'Wednesday' => 'Rabu',
+    'Thursday'  => 'Kamis',
+    'Friday'    => 'Jumat',
+    'Saturday'  => 'Sabtu'
+];
+$hari_ini = $hari_map[date('l')];
+
+// ===================================================== // 1. JADWAL MENGAJAR HARI INI (JUMLAH) // =====================================================
+$stmt = mysqli_prepare($conn, "SELECT COUNT(*) AS total FROM jadwal WHERE guru_id = ? AND hari = ?");
+mysqli_stmt_bind_param($stmt, "is", $guru_id, $hari_ini);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$jadwal_hari_ini_total = (int) (mysqli_fetch_assoc($result)['total'] ?? 0);
+mysqli_stmt_close($stmt);
+
+// ===================================================== // 2. TOTAL SISWA YANG DIAJAR // =====================================================
+$stmt = mysqli_prepare($conn, "
+    SELECT COUNT(DISTINCT siswa.id) AS total
+    FROM jadwal
+    INNER JOIN siswa ON siswa.kelas_id = jadwal.kelas_id
+    WHERE jadwal.guru_id = ?
+");
+mysqli_stmt_bind_param($stmt, "i", $guru_id);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$total_siswa_diajar = (int) (mysqli_fetch_assoc($result)['total'] ?? 0);
+mysqli_stmt_close($stmt);
+
+// ===================================================== // 3. ABSENSI SAYA BULAN INI (HADIR) // =====================================================
+$stmt = mysqli_prepare($conn, "
+    SELECT COUNT(*) AS total
+    FROM absensi_guru
+    WHERE guru_id = ?
+      AND status = 'H'
+      AND MONTH(tanggal) = MONTH(CURDATE())
+      AND YEAR(tanggal) = YEAR(CURDATE())
+");
+mysqli_stmt_bind_param($stmt, "i", $guru_id);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$absensi_saya_bulan_ini = (int) (mysqli_fetch_assoc($result)['total'] ?? 0);
+mysqli_stmt_close($stmt);
+
+// ===================================================== // 4. TIDAK ABSENSI BULAN INI (S/I/A) // =====================================================
+$stmt = mysqli_prepare($conn, "
+    SELECT COUNT(*) AS total
+    FROM absensi_guru
+    WHERE guru_id = ?
+      AND status != 'H'
+      AND MONTH(tanggal) = MONTH(CURDATE())
+      AND YEAR(tanggal) = YEAR(CURDATE())
+");
+mysqli_stmt_bind_param($stmt, "i", $guru_id);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$tidak_absensi_bulan_ini = (int) (mysqli_fetch_assoc($result)['total'] ?? 0);
+mysqli_stmt_close($stmt);
+
+// ===================================================== // JADWAL MENGAJAR HARI INI (DETAIL) // =====================================================
+$stmt = mysqli_prepare($conn, "
+    SELECT
+        jadwal.id AS jadwal_id,
+        jadwal.kelas_id,
+        jadwal.mapel_id,
+        jadwal.jam_masuk,
+        jadwal.jam_keluar,
+        mapel.nama_mapel,
+        kelas.nama_kelas,
+        EXISTS (
+            SELECT 1 FROM absensi
+            INNER JOIN siswa ON siswa.id = absensi.siswa_id
+            WHERE siswa.kelas_id = jadwal.kelas_id
+              AND absensi.mapel_id = jadwal.mapel_id
+              AND absensi.tanggal = ?
+        ) AS sudah_diabsen
+    FROM jadwal
+    INNER JOIN mapel ON mapel.id = jadwal.mapel_id
+    INNER JOIN kelas ON kelas.id = jadwal.kelas_id
+    WHERE jadwal.guru_id = ? AND jadwal.hari = ?
+    ORDER BY jadwal.jam_masuk ASC
+");
+mysqli_stmt_bind_param($stmt, "sis", $today, $guru_id, $hari_ini);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$jadwal_hari_ini = mysqli_fetch_all($result, MYSQLI_ASSOC);
+mysqli_stmt_close($stmt);
+
+// ===================================================== // PENGUMUMAN TERBARU // =====================================================
+$q_pengumuman = mysqli_query(
+    $conn,
+    "SELECT pengumuman FROM pengumuman ORDER BY created_at DESC LIMIT 1"
+);
+$pengumuman_row = mysqli_fetch_assoc($q_pengumuman);
 
 ?>
 
@@ -62,8 +176,9 @@ if (!$id) {
             <div class="sidebar-logo">
                 <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-                    <a href="../index.html" class="logo">
-                        <img src="../../../assets/img/" alt="navbar brand" class="navbar-brand" height="20" />
+                    <a href="../dashboardGuru.php" class="logo">
+                        <img src="../../assets/img/logo.png" alt="navbar brand"
+                            style="height: 30px; margin-right: 10px;" />
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -84,7 +199,7 @@ if (!$id) {
                     <ul class="nav nav-secondary">
 
                         <!-- Dashboard -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../dashboardGuru.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>
@@ -152,22 +267,6 @@ if (!$id) {
                                 <p>Absensi Mandiri</p>
                             </a>
                         </li>
-
-                        <li class="nav-section">
-                            <span class="sidebar-mini-icon">
-                                <i class="fa fa-ellipsis-h"></i>
-                            </span>
-                            <h4 class="text-section">Pengumuman</h4>
-                        </li>
-
-                        <!-- Pengumuman -->
-                        <li class="nav-item">
-                            <a href="pengumuman/index.php">
-                                <i class="fas fa-bullhorn"></i>
-                                <p>Pengumuman</p>
-                            </a>
-                        </li>
-
                     </ul>
                 </div>
             </div>
@@ -179,9 +278,8 @@ if (!$id) {
                 <div class="main-header-logo">
                     <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
-                        <a href="index.html" class="logo">
-                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand"
-                                height="20" />
+                        <a href="../dashboardGuru.php" class="logo">
+                            <img src="../../assets/img/logo.png" alt="navbar brand" class="navbar-brand" height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -202,71 +300,12 @@ if (!$id) {
                     <div class="container-fluid">
 
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-icon dropdown hidden-caret d-flex d-lg-none">
-                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
-                                    aria-expanded="false" aria-haspopup="true">
-                                    <i class="fa fa-search"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-search animated fadeIn">
-                                    <form class="navbar-left navbar-form nav-search">
-                                        <div class="input-group">
-                                            <input type="text" placeholder="Search ..." class="form-control" />
-                                        </div>
-                                    </form>
-                                </ul>
-                            </li>
-
-                            <li class="nav-item topbar-icon dropdown hidden-caret">
-                                <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                    <i class="fas fa-layer-group"></i>
-                                </a>
-                                <div class="dropdown-menu quick-actions animated fadeIn">
-                                    <div class="quick-actions-header">
-                                        <span class="title mb-1">Quick Actions</span>
-                                        <span class="subtitle op-7">Shortcuts</span>
-                                    </div>
-                                    <div class="quick-actions-scroll scrollbar-outer">
-                                        <div class="quick-actions-items">
-                                            <div class="row m-0">
-                                                <a class="col-6 col-md-4 p-0" href="#" id="openCalendar">
-
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-danger rounded-circle">
-                                                            <i class="far fa-calendar-alt"></i>
-                                                        </div>
-                                                        <span class="text">Calendar</span>
-                                                    </div>
-                                                </a>
-                                                <a class="col-6 col-md-4 p-0" href="#" id="openMaps">
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-warning rounded-circle">
-                                                            <i class="fas fa-map"></i>
-                                                        </div>
-                                                        <span class="text">Maps</span>
-                                                    </div>
-                                                </a>
-                                                <a class="col-6 col-md-4 p-0"
-                                                    href="https://wa.me/62823?text=Halo%20Admin,%20saya%20ingin%20bertanya%20mengenai%20pendaftaran."
-                                                    target="_blank">
-                                                    <div class="quick-actions-item">
-                                                        <div class="avatar-item bg-success rounded-circle">
-                                                            <i class="fab fa-whatsapp"></i>
-                                                        </div>
-                                                        <span class="text">WhatsApp</span>
-                                                    </div>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-
-
                             <li class="nav-item topbar-user dropdown hidden-caret">
                                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                     aria-expanded="false">
                                     <div class="avatar-sm">
-                                        <img src="../../assets/img/user/" alt="..." class="avatar-img rounded-circle" />
+                                        <img src="../../assets/img/cs admin.png" alt="..."
+                                            class="avatar-img rounded-circle" />
                                     </div>
                                     <span class="profile-username">
                                         <span class="fw-bold"><?= $_SESSION['username']; ?></span>
@@ -277,16 +316,12 @@ if (!$id) {
                                         <li>
                                             <div class="user-box">
                                                 <div class="avatar-lg">
-                                                    <img src="                                        
-                                                        ../../assets/img/user/" alt="..." class="avatar-img rounded" />
+                                                    <img src="../../assets/img/cs admin.png" alt="..."
+                                                        class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
                                                     <h4><?= $_SESSION['username']; ?></h4>
                                                     <p class="text-muted"><?= $_SESSION['email']; ?></p>
-
-                                                    <a href="../../profile.php"
-                                                        class="btn btn-xs btn-secondary btn-sm">View
-                                                        Profile</a>
                                                 </div>
                                             </div>
                                         </li>
@@ -316,20 +351,21 @@ if (!$id) {
 
                     </div>
                     <div class="row">
+                        <!-- Jadwal Hari Ini -->
                         <div class="col-sm-6 col-md-3">
                             <div class="card card-stats card-round">
                                 <div class="card-body">
                                     <div class="row align-items-center">
                                         <div class="col-icon">
                                             <div class="icon-big text-center icon-primary bubble-shadow-small">
-                                                <i class="fas fa-users"></i>
+                                                <i class="fas fa-calendar-alt"></i>
                                             </div>
                                         </div>
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
-                                                <p class="card-category">Users</p>
+                                                <p class="card-category">Jadwal Hari Ini</p>
                                                 <h4 class="card-title">
-
+                                                    <?= $jadwal_hari_ini_total ?>
                                                 </h4>
                                             </div>
                                         </div>
@@ -338,20 +374,21 @@ if (!$id) {
                             </div>
                         </div>
 
+                        <!-- Total Siswa Diajar -->
                         <div class="col-sm-6 col-md-3">
                             <div class="card card-stats card-round">
                                 <div class="card-body">
                                     <div class="row align-items-center">
                                         <div class="col-icon">
                                             <div class="icon-big text-center icon-info bubble-shadow-small">
-                                                <i class="fas fa-user-graduate"></i>
+                                                <i class="fas fa-users"></i>
                                             </div>
                                         </div>
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
-                                                <p class="card-category">Siswa</p>
+                                                <p class="card-category">Total Siswa Diajar</p>
                                                 <h4 class="card-title">
-
+                                                    <?= $total_siswa_diajar ?>
                                                 </h4>
                                             </div>
                                         </div>
@@ -360,6 +397,7 @@ if (!$id) {
                             </div>
                         </div>
 
+                        <!-- Absensi Saya (Bulan Ini) -->
                         <div class="col-sm-6 col-md-3">
                             <div class="card card-stats card-round">
                                 <div class="card-body">
@@ -371,9 +409,9 @@ if (!$id) {
                                         </div>
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
-                                                <p class="card-category">Guru Sudah Absensi</p>
+                                                <p class="card-category">Absensi Saya (Bulan Ini)</p>
                                                 <h4 class="card-title">
-
+                                                    <?= $absensi_saya_bulan_ini ?>
                                                 </h4>
                                             </div>
                                         </div>
@@ -382,6 +420,7 @@ if (!$id) {
                             </div>
                         </div>
 
+                        <!-- Tidak Absensi (Bulan Ini) -->
                         <div class="col-sm-6 col-md-3">
                             <div class="card card-stats card-round">
                                 <div class="card-body">
@@ -393,9 +432,9 @@ if (!$id) {
                                         </div>
                                         <div class="col col-stats ms-3 ms-sm-0">
                                             <div class="numbers">
-                                                <p class="card-category">Guru Belum Absensi</p>
+                                                <p class="card-category">Tidak Absensi (Bulan Ini)</p>
                                                 <h4 class="card-title">
-
+                                                    <?= $tidak_absensi_bulan_ini ?>
                                                 </h4>
                                             </div>
                                         </div>
@@ -405,7 +444,78 @@ if (!$id) {
                         </div>
                     </div>
 
+                    <!-- Jadwal Mengajar Hari Ini & Pengumuman -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-calendar-day me-2"></i>Jadwal Mengajar Hari Ini
+                                        (<?= $hari_ini ?>)
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <?php if (empty($jadwal_hari_ini)): ?>
+                                    <p class="text-muted mb-0">Tidak ada jadwal mengajar hari ini.</p>
+                                    <?php else: ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Jam</th>
+                                                    <th>Mata Pelajaran</th>
+                                                    <th>Kelas</th>
+                                                    <th>Status Absensi</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($jadwal_hari_ini as $j): ?>
+                                                <tr>
+                                                    <td>
+                                                        <?= substr($j['jam_masuk'], 0, 5) ?> -
+                                                        <?= substr($j['jam_keluar'], 0, 5) ?>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($j['nama_mapel']) ?></td>
+                                                    <td><?= htmlspecialchars($j['nama_kelas']) ?></td>
+                                                    <td>
+                                                        <?php if ($j['sudah_diabsen']): ?>
+                                                        <span class="badge bg-success">Sudah Diabsen</span>
+                                                        <?php else: ?>
+                                                        <span class="badge bg-warning text-dark">Belum Diabsen</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a href="absensi/index.php?kelas_id=<?= $j['kelas_id'] ?>&mapel_id=<?= $j['mapel_id'] ?>"
+                                                            class="btn btn-sm btn-primary">
+                                                            <?= $j['sudah_diabsen'] ? 'Lihat/Edit' : 'Isi Absensi' ?>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-bullhorn me-2"></i>Pengumuman
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-0">
+                                        <?= htmlspecialchars($pengumuman_row['pengumuman'] ?? 'Belum ada pengumuman.') ?>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
             </div>
@@ -424,37 +534,9 @@ if (!$id) {
 
         <!-- End Custom template -->
     </div>
-    <div class="modal fade" id="calendarModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Kalender</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="calendar"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="modal fade" id="mapsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Lokasi ICT Boarding School Pakenjeng</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.0490064280293!2d107.63090179999999!3d-7.459830900000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e66210076a60459%3A0x6a5343201d23b2c1!2sICT%20BOARDING%20SCHOOL!5e0!3m2!1sid!2sid!4v1767444462801!5m2!1sid!2sid"
-                        width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy">
-                    </iframe>
 
-                </div>
-            </div>
-        </div>
-    </div>
+
     <!--   Core JS Files   -->
     <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../../assets/js/core/popper.min.js"></script>
@@ -488,7 +570,6 @@ if (!$id) {
     <!-- Kaiadmin JS -->
     <script src="../../assets/js/kaiadmin.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
 </body>
 
