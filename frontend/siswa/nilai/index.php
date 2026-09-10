@@ -116,7 +116,7 @@ $data_nilai = mysqli_query($conn, $query_nilai);
                         </li>
 
                         <!-- Nilai -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../nilai/index.php">
                                 <i class="fas fa-star"></i>
                                 <p>Nilai</p>

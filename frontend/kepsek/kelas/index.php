@@ -6,8 +6,19 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'kepsek') {
     die('Akses ditolak');
 }
 
-$data = mysqli_query($conn, "SELECT k.id, k.nama_kelas, k.wali_kelas, k.created_at, COUNT(s.id) AS jumlah_siswa FROM kelas k LEFT JOIN siswa s ON s.kelas_id = k.id
-    GROUP BY k.id, k.nama_kelas ORDER BY created_at DESC");
+$data = mysqli_query($conn, "
+    SELECT 
+        k.id,
+        k.nama_kelas,
+        g.nama_guru,
+        k.created_at,
+        COUNT(s.id) AS jumlah_siswa
+    FROM kelas k
+    LEFT JOIN siswa s ON s.kelas_id = k.id
+    LEFT JOIN guru g ON g.id = k.guru_id
+    GROUP BY k.id, k.nama_kelas, g.nama_guru, k.created_at
+    ORDER BY k.created_at DESC
+");
 ?>
 
 
@@ -253,7 +264,7 @@ $data = mysqli_query($conn, "SELECT k.id, k.nama_kelas, k.wali_kelas, k.created_
                                                     <th>Jumlah Siswa</th>
                                                     <th>Wali Kelas</th>
                                                     <th>Di buat</th>
-                                                    <th>Aksi</th>
+
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -265,17 +276,9 @@ $data = mysqli_query($conn, "SELECT k.id, k.nama_kelas, k.wali_kelas, k.created_
                                                     <td><?= $no++ ?></td>
                                                     <td><?= $u['nama_kelas'] ?></td>
                                                     <td><?= $u['jumlah_siswa'] ?></td>
-                                                    <td><?= strtoupper($u['wali_kelas']) ?></td>
+                                                    <td><?= htmlspecialchars($u['nama_guru'] ?? '-') ?></td>
                                                     <td><?= $u['created_at'] ?></td>
-                                                    <td>
-                                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                                            data-bs-target="#modalEditkelas<?= $u['id'] ?>">
-                                                            Edit
-                                                        </button>
-                                                        <a href="hapus_user.php?id=<?= $u['id'] ?>"
-                                                            class="btn btn-danger btn-sm"
-                                                            onclick="return confirm('Hapus kelas ini?')">Hapus</a>
-                                                    </td>
+
                                                 </tr>
 
                                                 <?php endwhile; ?>

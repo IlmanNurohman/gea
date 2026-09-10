@@ -218,7 +218,7 @@ $q_absensi_siswa = mysqli_query($conn, "
             <div class="sidebar-wrapper scrollbar scrollbar-inner">
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../dashboardOperator.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>
@@ -361,9 +361,21 @@ $q_absensi_siswa = mysqli_query($conn, "
                                                 </div>
                                             </div>
                                         </li>
+
                                         <li>
                                             <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="../../logout.php">Logout</a>
+
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                                data-bs-target="#modalGantiPassword"><i class="fas fa-lock"></i>
+                                                Ganti Password
+                                            </a>
+                                        </li>
+
+
+                                        <li>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="../../logout.php"><i
+                                                    class="fas fa-sign-out-alt"></i> Logout</a>
                                         </li>
                                     </div>
                                 </ul>
@@ -659,6 +671,60 @@ $q_absensi_siswa = mysqli_query($conn, "
                 </footer>
             </div>
         </div>
+
+
+        <!-- Modal Ganti Password -->
+        <div class="modal fade" id="modalGantiPassword" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Ganti Password</h5>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        </button>
+                    </div>
+
+                    <form method="POST" action="../../backend/ganti_password.php">
+
+                        <div class="modal-body">
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Password Baru
+                                </label>
+
+                                <input type="password" name="password_baru" class="form-control"
+                                    placeholder="Masukkan password baru" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Konfirmasi Password
+                                </label>
+
+                                <input type="password" name="konfirmasi_password" class="form-control"
+                                    placeholder="Ulangi password baru" required>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                                Batal
+                            </button>
+
+                            <button type="submit" name="ganti_password" class="btn btn-primary">
+                                Simpan
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
 
 
         <!--   Core JS Files   -->

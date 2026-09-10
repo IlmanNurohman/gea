@@ -317,7 +317,7 @@ function badgeStatusTugas(?int $id_kumpul, ?int $nilai): string
                         </li>
 
                         <!-- Nilai -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="nilai.php">
                                 <i class="fas fa-star"></i>
                                 <p>Nilai</p>

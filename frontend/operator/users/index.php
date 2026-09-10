@@ -121,7 +121,7 @@ $data = mysqli_query($conn, "SELECT id, username, role, created_at FROM users OR
                         </li>
 
                         <!-- Users -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../users/index.php">
                                 <i class="fas fa-users-cog"></i>
                                 <p>Users</p>

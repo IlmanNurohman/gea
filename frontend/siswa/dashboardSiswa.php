@@ -193,7 +193,7 @@ $row = mysqli_fetch_assoc($pengumuman);
                     <ul class="nav nav-secondary">
 
                         <!-- Dashboard -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="dashboardSiswa.php" class="collapsed" aria-expanded="false">
                                 <i class="fas fa-home"></i>
                                 <p>Dashboard</p>

@@ -420,6 +420,7 @@
         </p>
 
     </div>
+    <script src="assets/js/plugin/sweetalert/sweetalert.min.js"></script>
 
     <script>
     const togglePw = document.getElementById('togglePw');
@@ -432,6 +433,62 @@
         eyeIcon.className = isHidden ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
     });
     </script>
+
+    <?php if (isset($_GET['register'])): ?>
+
+    <script>
+    <?php if ($_GET['register'] === 'success'): ?>
+
+    swal({
+        title: 'Berhasil!',
+        text: 'Registrasi orang tua berhasil. Silakan login.',
+        icon: 'success'
+    });
+
+    <?php elseif ($_GET['register'] === 'empty'): ?>
+
+    swal({
+        title: 'Gagal!',
+        text: 'Semua field wajib diisi.',
+        icon: 'error'
+    });
+
+    <?php elseif ($_GET['register'] === 'password_short'): ?>
+
+    swal({
+        title: 'Gagal!',
+        text: 'Password minimal 6 karakter.',
+        icon: 'error'
+    });
+
+    <?php elseif ($_GET['register'] === 'username_exists'): ?>
+
+    swal({
+        title: 'Gagal!',
+        text: 'Username sudah digunakan.',
+        icon: 'error'
+    });
+
+    <?php elseif ($_GET['register'] === 'nisn_not_found'): ?>
+
+    swal({
+        title: 'Gagal!',
+        text: 'NISN anak tidak ditemukan.',
+        icon: 'error'
+    });
+
+    <?php elseif ($_GET['register'] === 'failed'): ?>
+
+    swal({
+        title: 'Gagal!',
+        text: 'Registrasi gagal. Silakan coba lagi.',
+        icon: 'error'
+    });
+
+    <?php endif; ?>
+    </script>
+
+    <?php endif; ?>
 
 </body>
 

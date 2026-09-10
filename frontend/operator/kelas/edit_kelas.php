@@ -11,12 +11,12 @@ $id = (int)$_POST['id'];
 if (isset($_POST['update'])) {
 
     $namaKelas = mysqli_real_escape_string($conn, $_POST['nama_kelas']);
-    $waliKelas     = mysqli_real_escape_string($conn, $_POST['wali_kelas']);
+    $waliKelas     = mysqli_real_escape_string($conn, $_POST['guru_id']);
 
         $query = mysqli_query($conn, "
-            UPDATE users
+            UPDATE kelas
             SET nama_kelas='$namaKelas',
-                password='$waliKelas',
+                guru_id='$waliKelas'
                 
             WHERE id=$id
         ");

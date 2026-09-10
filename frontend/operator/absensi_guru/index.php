@@ -117,7 +117,7 @@ $q_rekap = mysqli_query($conn, "SELECT guru.nama_guru, guru.nip, absensi_guru.ja
                         </li>
 
                         <!-- Absensi Guru -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../absensi_guru/index.php">
                                 <i class="fas fa-user-check"></i>
                                 <p>Absensi Guru</p>

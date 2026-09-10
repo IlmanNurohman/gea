@@ -241,7 +241,7 @@ $data_guru = mysqli_query($conn, $query_guru);
                                                     <th>Nama Guru</th>
                                                     <th>L/P</th>
                                                     <th>Mata Pelajaran</th>
-                                                    <th>Aksi</th>
+
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -252,15 +252,7 @@ $data_guru = mysqli_query($conn, $query_guru);
                                                     <td><?= htmlspecialchars($g['nama_guru']) ?></td>
                                                     <td><?= $g['jenis_kelamin'] ?></td>
                                                     <td><?= htmlspecialchars($g['nama_mapel'] ?? '-') ?></td>
-                                                    <td>
-                                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                                            data-bs-target="#modalEditGuru<?= $g['id'] ?>">
-                                                            Edit
-                                                        </button>
-                                                        <a href="hapus_guru.php?id=<?= $g['id'] ?>&user_id=<?= $g['user_id'] ?>"
-                                                            class="btn btn-danger btn-sm"
-                                                            onclick="return confirm('Hapus data guru ini?')">Hapus</a>
-                                                    </td>
+
                                                 </tr>
                                                 <?php endwhile; ?>
                                             </tbody>

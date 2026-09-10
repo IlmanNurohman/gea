@@ -547,6 +547,14 @@
             </div>
 
             <div class="field">
+                <label for="nisn_anak">NISN Anak</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-id-card input-icon"></i>
+                    <input type="text" id="nisn_anak" name="nisn_anak" placeholder="Masukkan NISN anak" required>
+                </div>
+            </div>
+
+            <div class="field">
                 <label for="password">Password</label>
                 <div class="input-wrap">
                     <i class="fa-solid fa-lock input-icon"></i>

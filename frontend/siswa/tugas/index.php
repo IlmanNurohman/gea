@@ -112,7 +112,7 @@ $data_tugas = mysqli_query($conn, $query_tugas);
                         </li>
 
                         <!-- Tugas -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../tugas/index.php">
                                 <i class="fas fa-tasks"></i>
                                 <p>Tugas</p>

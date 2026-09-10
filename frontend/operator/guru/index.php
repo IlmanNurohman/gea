@@ -97,14 +97,14 @@ while ($row = mysqli_fetch_assoc($data_mapel)) {
                         </li>
 
                         <!-- Absensi Guru -->
-                        <li class="nav-item">
+                        <li class="nav-item ">
                             <a href="../absensi_guru/index.php">
                                 <i class="fas fa-user-check"></i>
                                 <p>Absensi Guru</p>
                             </a>
                         </li>
 
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../guru/index.php">
                                 <i class="fas fa-chalkboard-teacher"></i>
                                 <p>Data Guru</p>

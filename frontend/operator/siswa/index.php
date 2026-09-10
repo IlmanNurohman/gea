@@ -112,7 +112,7 @@ while ($row = mysqli_fetch_assoc($data_kelas)) {
                         </li>
 
                         <!-- Data Siswa -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../siswa/index.php">
                                 <i class="fas fa-user-graduate"></i>
                                 <p>Data Siswa</p>

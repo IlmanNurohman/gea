@@ -152,7 +152,7 @@ $pengumuman = mysqli_query($conn, "SELECT * FROM pengumuman ORDER BY id ASC");
                         </li>
 
                         <!-- Pengumuman -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../pengumuman/index.php">
                                 <i class="fas fa-bullhorn"></i>
                                 <p>Pengumuman</p>

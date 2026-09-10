@@ -450,7 +450,7 @@ function formatTanggalIndonesia(string $tanggal): string
                         </li>
 
                         <!-- Absensi Guru -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="absensi.php">
                                 <i class="fas fa-user-check"></i>
                                 <p>Absensi</p>

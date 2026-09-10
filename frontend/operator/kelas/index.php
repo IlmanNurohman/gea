@@ -126,7 +126,7 @@ $guru_options = mysqli_fetch_all($data_guru, MYSQLI_ASSOC);
                         </li>
 
                         <!-- Data Kelas -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../kelas/index.php">
                                 <i class="fas fa-chalkboard"></i>
                                 <p>Data Kelas</p>
@@ -309,7 +309,7 @@ $guru_options = mysqli_fetch_all($data_guru, MYSQLI_ASSOC);
                                                             data-bs-target="#modalEditkelas<?= $u['id'] ?>">
                                                             Edit
                                                         </button>
-                                                        <a href="hapus_user.php?id=<?= $u['id'] ?>"
+                                                        <a href="hapus_kelas.php?id=<?= $u['id'] ?>"
                                                             class="btn btn-danger btn-sm"
                                                             onclick="return confirm('Hapus kelas ini?')">Hapus</a>
                                                     </td>

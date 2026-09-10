@@ -153,7 +153,7 @@ $jadwal_list = mysqli_fetch_all($res_jadwal, MYSQLI_ASSOC);
                         </li>
 
                         <!-- Jadwal Siswa -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../jadwal/index.php">
                                 <i class="fas fa-calendar-alt"></i>
                                 <p>Jadwal</p>

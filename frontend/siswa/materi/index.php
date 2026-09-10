@@ -223,7 +223,7 @@ $data_materi = mysqli_query($conn, $query_materi);
                             <li class="separator">
                                 <i class="icon-arrow-right"></i>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item active">
                                 <a href="#">Data Materi</a>
                             </li>
                         </ul>
