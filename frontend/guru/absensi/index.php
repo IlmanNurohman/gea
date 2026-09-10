@@ -168,7 +168,7 @@ $data_mapel = mysqli_query(
                         </li>
 
                         <!-- Absensi Siswa -->
-                        <li class="nav-item">
+                        <li class="nav-item active">
                             <a href="../absensi/index.php">
                                 <i class="fas fa-user-check"></i>
                                 <p>Absensi Siswa</p>
